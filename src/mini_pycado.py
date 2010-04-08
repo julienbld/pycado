@@ -1,3 +1,5 @@
+### PYCADO LIBRARY
+
 import inspect
 
 pycado_dict = dict()
@@ -22,11 +24,19 @@ class Primitive:
     
     def add_objects(self, function_args, vars):
       for k, v in vars.items():
-        if k not in function_args:
+        if k not in function_args and has_pycado_prefix(k):
           setattr(self, k, v)
       
-
-
+      
+      
+def has_pycado_prefix(var):
+  l_prefix = ["pt_", "ln_", "ci_", "el_", "sp_", "su_", "so_"]
+  for pref in l_prefix:
+    if var.startswith(pref):
+      return True
+  return False
+  
+  
 class pt(Primitive):
   def __init__(self, x, y, z):
     self.value = [x, y, z]
@@ -42,11 +52,17 @@ class su(Primitive):
     self.value = args
     Primitive.memorise_object(self)
 
+### END PYCADO LIBRARY
+
+
+### BEGIN USER PROGRAM
+
 # OBJECT su_square(side)
 # pre-processor replaces instruction by
 class su_square(su):
   def __init__(self, side):
 # end replace + auto increment
+    test = pt(0,0,0)
     pt_1 = pt(0,0,0)
     pt_2 = pt(side,0,0)
     ln_1 = ln(pt_1, pt_2)
@@ -63,6 +79,7 @@ su_square_1 = su_square(10)
 
 print su_square_1.pt_1.value
 print su_square_1.ln_4.value
+print su_square_1.test
 
 #for k, v in pycado_dict.items():
 #  print k, " = ", v

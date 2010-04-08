@@ -1,18 +1,26 @@
 #unit ; cm
 
-side = 5
-width = .2
+va_side = 5
+va_width = .2
 #length
 
-def su_polygon(*pts)
-  lns = []
-  last_pt = None;
-  pts.append(pts[0])
-  for pt in pts:
-    if last_pt != None:
-      lns.append(ln(last_pt, pt))
-          
-  return su(lns)
+
+# OBJECT su_polygon(* pts)
+# pre-processor replaces instruction by
+class su_polygon(su):
+  def __init__(self, *pts):
+# end replace + auto increment
+    lns = []
+    last_pt = None;
+    pts.append(pts[0])
+    for pt in pts:
+      if last_pt != None:
+        lns.append(ln(last_pt, pt))       
+# OBJECT = su(lns)
+# pre-processor replaces instruction by
+    su(self, lns)
+    Primitive.add_objects(self, inspect.getargspec(self.__init__)[0], locals())
+# end insert
 
 pt_origin = pt(0, 0, 0)
 pt_sqr1_two = pt(pt_origin, va_side, 0, 0)
@@ -30,4 +38,4 @@ su_sqr_2 = su_polygon(pt_sqr2_one, pt_sqr2_two, pt_sqr2_tree, pt_sqr2_four)
 
 su_section = su_sqr_1 - su_sqr_2
 
-vo_pipe = vo_extrusion(su_section, 20*ve_z)
+vo_pipe = vo(su_section, 20*ve_z)
