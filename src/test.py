@@ -9,10 +9,21 @@ su_square_1 = su_square(10)
 
 #su_square_1.surface.display()
 
-print su_square_1.surface.face
-solid = extrude(su_square_1.surface.face.Face(), 0, 0, 2)
+#solid = extrude(su_square_1.surface.face.Face(), 0, 0, 2)
 
-display.display.DisplayShape(solid.Shape())
+#display.display.DisplayShape(solid.Shape())
+
+cyl = cylinder(2, 3)
+
+display.display.DisplayShape(cyl.shape)
+
+neckLocation = gp_Pnt(0 , 0 , 5)
+neckNormal = gp().DZ()
+neckAx2 = gp_Ax2(neckLocation , neckNormal)
+
+cyl2 = cylinder(neckAx2, 1, 2)
+
+display.display.DisplayShape(cyl2.shape)
 
 #display.display.DisplayShape(su_square_1.face.Face())
 

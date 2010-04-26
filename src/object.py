@@ -53,4 +53,10 @@ class su_square(su):
     Primitive.add_objects(self, inspect.getargspec(self.__init__)[0], locals())
 # end insert
 
+class cylinder(Primitive):
 
+    def __init__(self, *args):
+        self.value = [args]
+        self.data = BRepPrimAPI_MakeCylinder(*args)
+        self.shape = self.data.Shape()
+        Primitive.__init__(self)
