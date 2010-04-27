@@ -14,7 +14,7 @@ ln_sqr1_two : [pt_sqr1_two, pt_sqr1_tree]
 ln_sqr1_tree : [pt_sqr1_tree, pt_sqr1_four]
 ln_sqr1_four : [pt_sqr1_four, pt_origin]
 
-sf_sqr1 : [ln_sqr1_one, ln_sqr1_two, ln_sqr1_tree, ln_sqr1_four]
+su_sqr1 : [ln_sqr1_one, ln_sqr1_two, ln_sqr1_tree, ln_sqr1_four]
 
 pt_sqr2_one : [va_width, va_width, 0]
 pt_sqr2_two : [pt_sqr2_one, va_side - 2 * va_width, 0, 0]
@@ -26,8 +26,8 @@ ln_sqr2_two : [pt_sqr2_two, pt_sqr2_tree]
 ln_sqr2_tree : [pt_sqr2_tree, pt_sqr2_four]
 ln_sqr2_four : [pt_sqr2_four, pt_sqr2_one]
 
-sf_sqr2 : [ln_sqr2_one, ln_sqr2_two, ln_sqr2_tree, ln_sqr2_four]
+su_sqr2 : [ln_sqr2_one, ln_sqr2_two, ln_sqr2_tree, ln_sqr2_four]
 
-sf_section : [ xor, sf_sqr1, sf_sqr2 ]
+su_section : [xor, su_sqr1, su_sqr2]
 
-vo_pipe: [extrusion, sf_section, 20 * ve_z]
+so_pipe: [extrusion, su_section, 20 * ve_z]

@@ -41,4 +41,3 @@ def has_pycado_prefix(var):
 
 ### END PYCADO LIBRARY
 
-

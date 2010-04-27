@@ -1,0 +1,34 @@
+#unit ; cm
+
+def ob_su_rec :
+  params: [re_0, va_width, va_height]
+  
+  pt_1: [0, 0, 0]
+  pt_2: [va_width, 0, 0]
+  pt_3: [va_width, va_height, 0]
+  pt_4: [0, va_height, 0]
+  
+  ln_1 : [pt_1, pt_2]
+  ln_2 : [pt_2, pt_3]
+  ln_3 : [pt_3, pt_4]
+  ln_4 : [pt_4, pt_1]
+  
+  su_rec : [ln_1, ln_2, ln_3, ln_4]
+  
+  return: su_rec
+  
+  
+va_side : 5
+va_width : .2
+
+ob_su_rec_1: [re_0, va_side, va_side]
+
+pt_origin_sqr_2: [va_width, va_width, 0]
+re_sqr_2: [pt_origin_sqr_2, ve_x, ve_y, ve_z]
+
+ob_su_rec_2: [re_sqr_2, va_side - 2*va_width, va_side - 2*va_width]
+ 
+
+su_section : [xor, ob_su_rec_1, ob_su_rec_2]
+
+so_pipe: [extrusion, su_section, 20 * ve_z]
