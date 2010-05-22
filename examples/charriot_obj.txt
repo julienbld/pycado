@@ -1,34 +1,50 @@
-#unit ; cm
-
-def ob_su_rec :
-  params: [re_0, va_width, va_height]
-  
+# define ob_rec which is a 2D rectangle
+def ob_rec(cs_0, va_width, va_height):
+  # create 4 points
   pt_1: [0, 0, 0]
   pt_2: [va_width, 0, 0]
   pt_3: [va_width, va_height, 0]
   pt_4: [0, va_height, 0]
   
+  # create 4 lines
   ln_1 : [pt_1, pt_2]
   ln_2 : [pt_2, pt_3]
   ln_3 : [pt_3, pt_4]
   ln_4 : [pt_4, pt_1]
   
+  # create surface bounded by lines
   su_rec : [ln_1, ln_2, ln_3, ln_4]
   
-  return: su_rec
+# define ob_pipe which is a pipe with a square basis
+def ob_pipe(cs_0, va_side, va_width, va_length):
+  # create 1st square
+  ob_rec_1: [cs_0, va_side, va_side]
   
+  # create 2nd sqare in a new coordinate system
+  pt_origin_sqr_2: [va_width, va_width, 0]
+  cs_sqr_2: [pt_origin_sqr_2, ve_x, ve_y, ve_z]  
+  ob_rec_2: [cs_sqr_2, va_side - 2*va_width, 
+              va_side - 2*va_width]
   
+  # cut sqare 1 by square 2
+  su_section : [cut, ob_rec_1.su_rec, ob_rec_2.su_rec]
+  # hide squares
+  ob_rec_1.su_rec.attr : {display: false}
+  ob_rec_2.su_rec.attr : {display: false}
+  
+  # extrude section 
+  so_pipe: [extrusion, su_section, ve_z*va_length]
+
+
+# variables
 va_side : 5
 va_width : .2
+va_len : 20
 
-ob_su_rec_1: [re_0, va_side, va_side]
+# create 1st pipe
+ob_pipe_1: [va_side, va_width, va_len]
 
-pt_origin_sqr_2: [va_width, va_width, 0]
-re_sqr_2: [pt_origin_sqr_2, ve_x, ve_y, ve_z]
-
-ob_su_rec_2: [re_sqr_2, va_side - 2*va_width, va_side - 2*va_width]
- 
-
-su_section : [xor, ob_su_rec_1, ob_su_rec_2]
-
-so_pipe: [extrusion, su_section, 20 * ve_z]
+# create 2nd pipe in a new coordinate system
+pt_1: [10, 10, 10]
+cs_1: [pt_1, ve_x, ve_y, ve_z]
+ob_pipe_2: [cs_1, 6, 0.3, 10]

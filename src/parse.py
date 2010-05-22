@@ -1,9 +1,12 @@
 import yaml
 import sys
+import cProfile
+
+from object2 import *
 
 # global
 g_expr_sep = [" ", "(", ")", "+", "-", '*', "/", ","];
-g_prefixes = ["va_", "pt_", "ln_", "ve_", "re_", "ci_", "el_", \
+g_prefixes = ["va_", "pt_", "ln_", "ve_", "cs_", "ci_", "el_", \
                 "sp_", "su_", "so_", "ob_", "fn_", "pa_"]
                 
 # utils function
@@ -23,7 +26,7 @@ def get_deps(a_instr):
   if isinstance(a_instr, list):
     for elt in a_instr:
       l_deps.update(get_deps(elt))       
-          
+  
   return l_deps
 
 
@@ -67,8 +70,11 @@ def get_instantiated_instruction(a_instr, a_inst_name):
     return l_new_instr
       
   elif isinstance(a_instr, list):
-    if not isinstance(a_instr[0], str) or not a_instr[0].startswith("re_"):
-      a_instr.insert(0, "re_0")
+    if not isinstance(a_instr[0], str) or not a_instr[0].startswith("cs_"):
+      #if a_inst_name==None:
+      a_instr.insert(0, "cs_0")
+      #else:
+      #  a_instr.insert(0, a_inst_name+".cs_0")
 
     l_instrs = []
     for elt in a_instr:
@@ -90,7 +96,7 @@ def get_call_to_dict(a_instr):
       if c in g_expr_sep:
         if l_current_str != "":
           if has_pycado_prefix(l_current_str):
-            l_current_str = "g_i['" + l_current_str + "']"
+            l_current_str = "g_i['" + l_current_str + "'].obj"
           else:
             try:
               float(l_current_str)
@@ -128,10 +134,29 @@ class DefObj:
       if k == "params":
         # add parameters initialisations instructions
         for i in range(len(v)):
-          l_instrs[a_inst_name + "." + v[i]] = g_instrs[a_inst_name][i]
-      elif k == "return":
+          l_ind = a_inst_name.rfind(".")
+          if l_ind==-1:
+            l_instrs[a_inst_name + "." + v[i]] = get_instantiated_instruction(g_instrs[a_inst_name][i], None)
+          else:
+            l_instrs[a_inst_name + "." + v[i]] = get_instantiated_instruction(g_instrs[a_inst_name][i], a_inst_name[:l_ind])
+          
+        # add pt_0, ve_x, ve_y, ve_z
+        l_instrs[a_inst_name + ".pt_0"] = ["cs_0", 0, 0, 0]
+        l_instrs[a_inst_name + ".ve_x"] = ["cs_0", "x"]
+        l_instrs[a_inst_name + ".ve_y"] = ["cs_0", "y"]
+        l_instrs[a_inst_name + ".ve_z"] = ["cs_0", "z"]
+
+     # elif k == "return":
         # object instance = alias on returned object
-        l_instrs[a_inst_name] = get_instantiated_instruction(v, a_inst_name)  
+     #   l_instrs[a_inst_name] = get_instantiated_instruction(v, a_inst_name) 
+      elif k.find(".attr")!=-1:
+        key = k[:k.find(".attr")]
+        g_attrs[a_inst_name + "." + key.strip()] = v  
+      elif k.startswith("ob_"):
+        g_instrs[a_inst_name + "." +k] = v
+        obj_name = k[0: 3 + k[3:].find("_")]
+        l_instrs.update(g_def_objs[obj_name].get_instantiated_instrs(a_inst_name + "." +k))
+        l_instrs[a_inst_name + "." + k] = get_instantiated_instruction(v, a_inst_name)
       else:
         l_instrs[a_inst_name + "." + k] = get_instantiated_instruction(v, a_inst_name)
     
@@ -148,7 +173,20 @@ class Instance:
     else: 
       self.m_call = self.instr_to_call(a_key_instr, a_forced_instr) 
       
-    self.draw()
+    if isinstance(self.m_call[1], str):
+      self.obj = eval(self.m_call[1])
+      if isinstance(self.obj, Object2):
+        l_display = True
+        if self.m_call[0] in g_attrs:
+          if "display" in g_attrs[self.m_call[0]]:
+            l_display = g_attrs[self.m_call[0]]["display"]
+        
+        if l_display:
+          self.obj.display()
+        
+    else:
+      self.obj = self.m_call[1]
+    
     self.is_resolved = True
     
   def instr_to_call(self, a_key_instr, a_instr):
@@ -164,13 +202,11 @@ class Instance:
         
     else:
       l_instr_str = l_instr      
-    
+
+    if a_key_instr.rpartition(".")[-1].startswith("ob_"):
+      l_instr_str = "ob('" + a_key_instr + "')"
+          
     return a_key_instr, l_instr_str
-    
-    
-  def draw(self):           
-    print "g_i['" + self.m_call[0] + "'] = " + str(self.m_call[1])
-      
   
 
 def instanciate(a_inst_name):
@@ -189,8 +225,14 @@ def load_prog(a_map, a_parent):
   # separate instructions and definitions of object
   for k, v in a_map.items(): 
     if k.strip().startswith("def"):
-      l_obj_name = k.strip()[4:].strip() 
+      l_ind_params = k.find("(")
+      l_obj_name = k.strip()[4:l_ind_params].strip() 
+      l_params = k[l_ind_params+1:k.find(")")].strip().split(",")
+      v["params"] = [elem.strip() for elem in l_params]     
       g_def_objs[l_obj_name] = DefObj(l_obj_name, v)
+    elif k.find(".attr")!=-1:
+      key = k[:k.find(".attr")]
+      g_attrs[key.strip()] = v  
     else: 
       g_instrs[k] = get_instantiated_instruction(v, None) #v
       
@@ -199,14 +241,13 @@ def load_prog(a_map, a_parent):
   l_new_instrs = {}
   for k, v in g_instrs.items():
     if k.startswith("ob_"):
-      obj_name = k[0: 6 + k[6:].find("_")]
+      obj_name = k[0: 3 + k[3:].find("_")]
       l_new_instrs.update(g_def_objs[obj_name].get_instantiated_instrs(k))
       g_instrs.update(l_new_instrs)
       
   # instanciate each instruction
   for k, v in g_instrs.items():
     instanciate(k)
-    #print k, " = ", v
 
          
 
@@ -216,18 +257,20 @@ src_code = yaml.load(stream)
 
 g_def_objs = {}
 g_instrs = {}
+g_attrs = {}
 g_i = {}
 
-# Initial referentiel
-g_i["pt_0"] = Instance("pt_0", [], "default_pycado_value")
-g_i["ve_x"] = Instance("ve_x", [], "default_pycado_value")
-g_i["ve_y"] = Instance("ve_y", [], "default_pycado_value")
-g_i["ve_z"] = Instance("ve_z", [], "default_pycado_value")
-g_i["re_0"] = Instance("re_0", [], "default_pycado_value")
+# Initial coordinate system
+g_i["pt_0"] = Instance("pt_0", [], [None, 0, 0, 0])
+g_i["ve_x"] = Instance("ve_x", [], [None, "x"])
+g_i["ve_y"] = Instance("ve_y", [], [None, "y"])
+g_i["ve_z"] = Instance("ve_z", [], [None, "z"])
+g_i["cs_0"] = Instance("cs_0", ["pt_0", "ve_x", "ve_y", "ve_z"], 
+                        [None, "pt_0", "ve_x", "ve_y", "ve_z"])
 
+#cProfile.run('load_prog(src_code, "")')
 load_prog(src_code, "")
-
-
+display.start_display()
 
                   
     

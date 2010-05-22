@@ -28,6 +28,8 @@ ln_sqr2_four : [pt_sqr2_four, pt_sqr2_one]
 
 su_sqr2 : [ln_sqr2_one, ln_sqr2_two, ln_sqr2_tree, ln_sqr2_four]
 
-su_section : [xor, su_sqr1, su_sqr2]
+su_section : [cut, su_sqr1, su_sqr2]
+su_sqr1.attr : {display: false}
+su_sqr2.attr : {display: false}
 
-so_pipe: [extrusion, su_section, 20 * ve_z]
+so_pipe: [extrusion, su_section, 20*ve_z]

@@ -7,11 +7,11 @@ from function import *
 
 su_square_1 = su_square(10)
 
-#su_square_1.surface.display()
+su_square_1.surface.display()
 
-#solid = extrude(su_square_1.surface.face.Face(), 0, 0, 2)
+solid = extrude(su_square_1.surface.face.Face(), 0, 0, 2)
 
-#display.display.DisplayShape(solid.Shape())
+display.display.DisplayShape(solid.Shape())
 
 cyl = cylinder(2, 3)
 
