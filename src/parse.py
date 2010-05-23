@@ -2,7 +2,7 @@ import yaml
 import sys
 import cProfile
 
-from object2 import *
+from object import *
 
 # global
 g_expr_sep = [" ", "(", ")", "+", "-", '*', "/", ","];
