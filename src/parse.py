@@ -175,7 +175,7 @@ class Instance:
       
     if isinstance(self.m_call[1], str):
       self.obj = eval(self.m_call[1])
-      if isinstance(self.obj, Object2):
+      if isinstance(self.obj, Object):
         l_display = True
         if self.m_call[0] in g_attrs:
           if "display" in g_attrs[self.m_call[0]]:
