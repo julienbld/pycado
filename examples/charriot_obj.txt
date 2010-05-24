@@ -16,15 +16,15 @@ def ob_rec(cs_0, va_width, va_height):
   su_rec : [ln_1, ln_2, ln_3, ln_4]
   
 # define ob_pipe which is a pipe with a square basis
-def ob_pipe(cs_0, va_side, va_width, va_length):
+def ob_pipe(cs_0, va_side, va_thi, va_length):
   # create 1st square
   ob_rec_1: [cs_0, va_side, va_side]
   
   # create 2nd sqare in a new coordinate system
-  pt_origin_sqr_2: [va_width, va_width, 0]
+  pt_origin_sqr_2: [va_thi, va_thi, 0]
   cs_sqr_2: [pt_origin_sqr_2, ve_x, ve_y, ve_z]  
-  ob_rec_2: [cs_sqr_2, va_side - 2*va_width, 
-              va_side - 2*va_width]
+  ob_rec_2: [cs_sqr_2, va_side - 2*va_thi, 
+              va_side - 2*va_thi]
   
   # cut sqare 1 by square 2
   su_section : [cut, ob_rec_1.su_rec, ob_rec_2.su_rec]
@@ -33,18 +33,155 @@ def ob_pipe(cs_0, va_side, va_width, va_length):
   ob_rec_2.su_rec.attr : {display: false}
   
   # extrude section 
-  so_pipe: [extrusion, su_section, ve_z*va_length]
+  so_res: [extrusion, su_section, ve_z*va_length]
+
+def ob_nut(cs_0, va_side_len, va_int_diam, va_thi):
+  # hexagone 
+  # c**2 = (c/2)**2 + (h/2)**2
+  # (h/2)**2 = c**2 - (c/2)**2
+  #  h/2 = c*sqr(3)/2
+  # h = c*sqr(3)
+  va_hexa_height = va_side_len * sqr(3) * 0.5
+  pt_1: [-va_side_len, 0, 0]
+  pt_2: [-va_side_len/2, va_hexa_height/2, 0]
+  pt_3: [va_side_len/2, va_hexa_height/2, 0]
+  pt_4: [va_side_len, 0, 0]
+  pt_5: [va_side_len/2, -va_hexa_height/2, 0]
+  pt_6: [-va_side_len/2, -va_hexa_height/2, 0]
+
+  ln_1 : [pt_1, pt_2]
+  ln_2 : [pt_2, pt_3]
+  ln_3 : [pt_3, pt_4]
+  ln_4 : [pt_4, pt_5]
+  ln_4 : [pt_5, pt_6]
+  ln_4 : [pt_6, pt_1]
+  
+  su_hex : [ln_1, ln_2, ln_3, ln_4, ln_5, ln_6]
+  
+  # hole
+  ci_1: [pt_0, ve_z, va_int_diam]
+  su_ci : [ci_1]
+
+  # intersection
+  su_section : [cut, su_hex, su_ci]
+  su_hex.attr : {display: false}
+  su_ci.attr : {display: false}
+  
+  so_res: [extrusion, su_section, ve_z*va_thi]
+
+def ob_rod(cs_0, va_diam, va_len):
+  ci_1: [pt_0, ve_z, va_diam]  
+  su_ci : [ci_1]
+  so_res: [extrusion, su_ci, ve_z*va_len]
+
+def ob_roll(cs_0, va_int_diam, va_ext_diam, va_height):
+  ci_1: [pt_0, ve_z, va_ext_diam]
+  su_ci_1 : [ci_1]
+  ci_2: [pt_0, ve_z, va_int_diam]  
+  su_ci_2 : [ci_2]  
+  # intersection
+  su_section : [cut, su_ci_1, su_ci_2]
+  su_ci_1.attr : {display: false}
+  su_ci_2.attr : {display: false}
+  so_res: [extrusion, su_section, ve_z*va_height]
 
 
+# instanciated obj
+def ob_rondl8(cs_0):
+  ob_roll_1: [cs_0, 8, 11, 3]
+  so_res: ob_roll_1.so_res
+  
+def ob_roll20(cs_0):
+  ob_roll_1: [cs_0, 8, 20, 7]
+  so_res: ob_roll_1.so_res
+
+def ob_nut8(cs_0):
+  ob_nut_1: [cs_0, 12, 8, 6]
+  
+
+def ob_rodmount(cs_0, ob_v_g):
+  va_margin: 2
+  pt_or_rod: [0, 0, -ob_v_g.va_nut_thi - va_margin]
+  ob_rod_1: [ob_v_g.va_rod_diam, ob_v_g.va_cha_wid + 2*(ob_v_g.va_nut_thi+va_margin)]
+  # to implement cs creation by translation
+  # first side
+  ve_1: -ob_v_g.va_nut_thi*ve_z
+  cs_nut8_1: [cs_0, translation, ve_1]
+  ob_nut8_1: [cs_nut8_1]
+  
+  ve_2: ob_v_g.va_pipe_wid*ve_z
+  cs_rondl8_1: [cs_0, translation, ve_2]
+  ob_rondl8_1: [cs_rondl8_1]
+
+  ve_3: (ob_v_g.va_pipe_wid+ob_v_g.va_rondl_thi)*ve_z  
+  cs_roll20_1: [cs_0, translation, ve_3]  
+  ob_roll20_1: [cs_roll20_1]
+
+  ve_4: (ob_v_g.va_pipe_wid+ob_v_g.va_rondl_thi+ob_v_g.va_roll_thi)*ve_z
+  cs_nut8_2: [cs_0, translation, ve_4]
+  ob_nut8_2: [cs_nut8_2]
+  
+  # second side
+  ve_5: (ob_v_g.va_cha_wid-ob_v_g.va_pipe_wid-ob_v_g.va_rondl_thi-ob_v_g.va_roll_thi-ob_v_g.va_nut_thi)*ve_z  
+  cs_nut8_3: [cs_0, translation, ve_5]
+  ob_nut8_3: [cs_nut8_3]
+  
+  ve_6: (ob_v_g.va_cha_wid-ob_v_g.va_pipe_wid-ob_v_g.va_rondl_thi-ob_v_g.va_roll_thi)*ve_z
+  cs_roll20_2: [cs_0, translation, ve_6]  
+  ob_roll20_2: [cs_roll20_2]
+  
+  ve_7: (ob_v_g.va_cha_wid-ob_v_g.va_pipe_wid-ob_v_g.va_rondl_thi)*ve_z
+  cs_rondl8_2: [cs_0, translation, ve_7]  
+  ob_rondl8_2: [cs_rondl8_2]
+  
+  ve_8: ob_v_g.va_cha_wid*ve_z
+  cs_nut8_4: [cs_0, translation, ve_8]
+  ob_nut8_4: [cs_nut8_4]
+
+# GLOBAL VARS
+def ob_v():
+  va_pipe_wid : 20
+  va_pipe_thi: 1.5
+  va_pipe_len : 200
+  va_cha_wid: 100 
+  va_rod_1_1: 10
+  va_rod_1_2: va_pipe_len - va_rod_1_1
+  va_rod_2_1: 20
+  va_rod_2_2: va_pipe_len - va_rod_2_1
+  va_rod_8_diam: 8
+  va_nut_8_side: 12 
+  va_nut_8_thi: 6
+  va_rondl_8_thi: 3
+  va_roll_thi: 7
+  
+  
+  
+####### MAIN  
 # variables
-va_side : 5
-va_width : .2
-va_len : 20
+ob_v_g: []
 
-# create 1st pipe
-ob_pipe_1: [va_side, va_width, va_len]
+# pipes
+ob_pipe_1: [ob_v_g.va_pipe_wid, ob_v_g.va_pipe_thi, ob_v_g.va_pipe_len]
 
-# create 2nd pipe in a new coordinate system
-pt_1: [10, 10, 10]
-cs_1: [pt_1, ve_x, ve_y, ve_z]
-ob_pipe_2: [cs_1, 6, 0.3, 10]
+pt_2: [ob_v_g.va_cha_wid, 0, 0]
+cs_2: [pt_2, ve_x, ve_y, ve_z]
+ob_pipe_2: [cs_2, ob_v_g.va_pipe_wid, ob_v_g.va_pipe_thi, ob_v_g.va_pipe_len]
+
+pt_3: [ob_v_g.va_cha_wid, ob_v_g.va_cha_wid, 0]
+cs_3: [pt_3, ve_x, ve_y, ve_z]
+ob_pipe_3: [cs_3, ob_v_g.va_pipe_wid, ob_v_g.va_pipe_thi, ob_v_g.va_pipe_len]
+
+pt_4: [0, ob_v_g.va_cha_wid, 0]
+cs_4: [pt_4, ve_x, ve_y, ve_z]
+ob_pipe_4: [cs_4, ob_v_g.va_pipe_wid, ob_v_g.va_pipe_thi, ob_v_g.va_pipe_len]
+
+# 8 rods
+cs_zx: [pt_0, ve_z, ve_x, ve_y]
+cs_yx: [pt_0, ve_z, ve_y, -ve_x]
+
+cs_rm_zx: [cs_zx, translation, ve_z, -ob_v_g.va_pipe_wid/2]
+cs_rm_1: [cs_zx, translation, ve_x, ob_v_g.va_rod_1_1]
+ob_rodmount_1: [cs_rm_1, ob_v_g]
+
+cs_rm_2: [cs_zx, translation, ve_x, va_rod_1_1]
+ob_rodmount_2: [cs_rm_2, ob_v_g]
