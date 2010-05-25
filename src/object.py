@@ -12,11 +12,11 @@ import display
 import inspect
 import numbers
 
-class Object2():
+class Object():
   def display(self):
     display.display.DisplayShape(self.topology)  
   
-class pt(Object2):  
+class pt(Object):  
   def __init__(self, cs, *args):
     if isinstance(args[0], pt):
       va_x = args[1]
@@ -74,14 +74,14 @@ class ob():
   def __init__(self, cs, *args):
     a = 2      
        
-class ln(Object2):
+class ln(Object):
   def __init__(self, cs, pt_1, pt_2):
     self.value = [pt_1, pt_2]
     #self.data = gp_Lin(gp_Ax1(pt_1.data, gp_Dir(pt_2.value[0], pt_2.value[1], pt_2.value[2])))
     self.topology = BRepBuilderAPI_MakeEdge(pt_1.data, pt_2.data).Edge()
   
 
-class su(Object2):
+class su(Object):
   def __init__(self, cs, *args):
     if isinstance(args[0], str):
       if args[0] == "cut":
@@ -97,7 +97,7 @@ class su(Object2):
       self.topology = BRepBuilderAPI_MakeFace(self.data.Wire()).Face()
 
 
-class so(Object2):
+class so(Object):
   def __init__(self, cs, *args):
     if isinstance(args[0], str):
       if args[0] == "extrusion": 
