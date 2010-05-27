@@ -41,7 +41,7 @@ def ob_nut(cs_0, va_side_len, va_int_diam, va_thi):
   # (h/2)**2 = c**2 - (c/2)**2
   #  h/2 = c*sqr(3)/2
   # h = c*sqr(3)
-  va_hexa_height = va_side_len * sqr(3) * 0.5
+  va_hexa_height: va_side_len * sqr(3) * 0.5
   pt_1: [-va_side_len, 0, 0]
   pt_2: [-va_side_len/2, va_hexa_height/2, 0]
   pt_3: [va_side_len/2, va_hexa_height/2, 0]
@@ -142,7 +142,7 @@ def ob_rodmount(cs_0, ob_v_g):
 def ob_v():
   va_pipe_wid : 20
   va_pipe_thi: 1.5
-  va_pipe_len : 200
+  va_pipe_len: 200
   va_cha_wid: 100 
   va_rod_1_1: 10
   va_rod_1_2: va_pipe_len - va_rod_1_1
@@ -179,7 +179,7 @@ ob_pipe_4: [cs_4, ob_v_g.va_pipe_wid, ob_v_g.va_pipe_thi, ob_v_g.va_pipe_len]
 cs_zx: [pt_0, ve_z, ve_x, ve_y]
 cs_yx: [pt_0, ve_z, ve_y, -ve_x]
 
-cs_rm_zx: [cs_zx, translation, ve_z, -ob_v_g.va_pipe_wid/2]
+cs_rm_zx: [cs_zx, translation, ve_z, -ob_v_g.va_pipe_wid / 2]
 cs_rm_1: [cs_zx, translation, ve_x, ob_v_g.va_rod_1_1]
 ob_rodmount_1: [cs_rm_1, ob_v_g]
 
