@@ -1,0 +1,179 @@
+# define ob_rec which is a 2D rectangle
+group rectangle(cs0, width, height):
+  # create 4 points
+  a = point(0, 0, 0)
+  b = point(width, 0, 0)
+  c = point(width, height, 0)
+  d = point(0, height, 0)
+  
+  # create 4 lines
+  ab = line(a, b)
+  bc = line(b, c)
+  cd = line(c, d)
+  da = line(d, a)
+  
+  # create surface bounded by lines
+  res = surface(ab, bc, cd, da)
+  
+# define ob_pipe which is a pipe with a square basis
+group sqr_pipe(cs0, side, thick, length):
+  # create 1st square
+  rec_1 = rectangle(cs0, side, side)
+  
+  # create 2nd sqare in a new coordinate system
+  p0_sqr2 = point(thick, thick, 0)
+  cs_sqr2 = coord_sys(p0_sqr2, vx, vy, vz)  
+  rec_2 = rectangle(cs_sqr2, side - 2*thick, side - 2*thick)
+  
+  # cut sqare 1 by square 2
+  section = surface(CUT, rec_1.res, rec_2.res)
+  # hide squares
+  rec_1.hide()
+  rec_2.hide()
+  
+  # extrude section 
+  res = solid(EXTRUSION, section, vz*length)
+
+
+group nut(cs_0, side_len, int_diam, thi):
+  # hexagone 
+  # c**2 = (c/2)**2 + (h/2)**2
+  # (h/2)**2 = c**2 - (c/2)**2
+  #  h/2 = c*sqr(3)/2
+  # h = c*sqr(3)
+  hexa_height = side_len * sqr(3) * 0.5
+  a = point(-side_len, 0, 0)
+  b = point(-side_len/2, hexa_height/2, 0)
+  c = point(side_len/2, hexa_height/2, 0)
+  d = point(side_len, 0, 0)
+  e = point(side_len/2, -hexa_height/2, 0)
+  f = point(-side_len/2, -hexa_height/2, 0)
+
+  ab  = line(a, b)
+  bc  = line(b, c)
+  cd  = line(c, d)
+  de  = line(d, e)
+  ef  = line(e, f)
+  fa  = line(f, a)
+  
+  hex  = surface(ab, bc, cd, de, ef, fa)
+  
+  # hole
+  c1 = circle(p0, vz, int_diam)
+  su_c1  = surface(c1)
+
+  # intersection
+  section  = surface(CUT, hex, su_c1)
+  hex.hide()
+  su_c1.hide()
+  
+  res = solid(EXTRUSION, section, vz*thi)
+
+
+group rod(cs0, diam, len):
+  sc1  = surface(cercle(p0, vz, diam))
+  res = (EXTRUSION, sc1, vz*len)
+
+
+group roll(cs0, int_diam, ext_diam, height):
+  sc1  = surface(cercle(p0, vz, ext_diam))
+  sc2  = surface(cercle(p0, vz, int_diam))
+  # intersection
+  section  = surface(CUT, sc1, sc2)
+  sc1.hide()
+  sc2.hide()
+  res = solid(EXTRUSION, section, vz*height)
+
+
+# instanciated obj
+group washer_8(cs0):
+  r = roll(cs0, 8, 11, 3)
+  res = r.res
+  
+group roll_20(cs0):
+  r = roll(cs0, 8, 20, 7)
+  res = r.res
+
+group nut_8(cs0):
+  res = nut(cs0, 12, 8, 6)
+  
+group roll_mount(cs0, g_vars):
+  cs_nut_1 = coord_sys(cs0, TRANSLATION, -g_vars.nut_thi*vz)
+  nut_1 = nut_8(cs_nut_1)
+  
+  cs_washer_1 = coord_sys(cs_nut_1, TRANSLATION, \ 
+                          (g_vars.nut_thi + g_vars.pipe_wid)*vz)
+  washer_1 = washer_8(cs_washer_1)
+  
+  cs_roll_1 = coord_sys(cs_washer_1, TRANSLATION, g_vars.washer_thi*vz)  
+  roll_1 = roll_20(cs_roll_1)
+
+  cs_nut_2 = coord_sys(cs_roll_1, TRANSLATION, g_vars.roll_20_thi*vz)
+  nut_2 = nut_8(cs_nut_2)
+  
+  
+group rod_mount(cs0, g_vars):
+  # margin after nuts
+  offset = -g_vars.margin -g_vars.nut_thi 
+  cs_rod_1 = coord_sys(cs0, TRANSLATION, offset*vz) 
+  rod_1 = rod(cs0, g_vars.rod_diam, g_vars.cha_wid + 2*(g_vars.nut_thi+margin))
+  
+  # bottom rod_mount
+  rm_1 = rod_mount(cs0, g_vars)
+  
+  # top rod_mount
+  cs_rm_2 = coord_sys(cs0, TRANSLATION, g_vars.cha_wid*vz)
+  cs_rm_2 = coord_sys(cs_rm_2, ROTATION, 180, vy)
+  rm_2 = rod_mount(cs_rm_2, g_vars) 
+  
+
+# GLOBAL VARS
+group vars(cs0):
+  margin = 2
+  pipe_wid  = 20
+  pipe_thi = 1.5
+  pipe_len = 200
+  cha_wid = 100 
+  rod_1_1 = 10
+  rod_1_2 = pipe_len - rod_1_1
+  rod_2_1 = 20
+  rod_2_2 = pipe_len - rod_2_1
+  rod_8_diam = 8
+  nut_8_side = 12 
+  nut_8_thi = 6
+  washer_thi = 3
+  roll_thi = 7
+  
+  
+  
+####### MAIN  
+# variables
+g_vars = vars(cs0)
+
+# pipes
+pipe_1 = sqr_pipe(cs0, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+p2 = point(g_vars.cha_wid, 0, 0)
+cs_2 = coord_sys(p2, vx, vy, vz)
+pipe_2 = sqr_pipe(cs_2, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+p3 = point(g_vars.cha_wid, g_vars.cha_wid, 0)
+cs_3 = coord_sys(p3, vx, vy, vz)
+pipe_3 = sqr_pipe(cs_3, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+p4 = point(0, g_vars.cha_wid, 0)
+cs_4 = coord_sys(p4, vx, vy, vz)
+pipe_4 = sqr_pipe(cs_4, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+# 8 rods
+cs_zx = coord_sys(p0, vz, vx, vy)
+cs_yx = coord_sys(p0, vz, vy, -vx)
+
+cs_rm_zx = coord_sys(cs_zx, TRANSLATION, vz, -g_vars.pipe_wid / 2)
+cs_rm_1 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
+rm_1 = rod_mount(cs_rm_1, g_vars)
+
+cs_rm_2 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
+rm_2 = rod_mount(cs_rm_2, g_vars)
+
+# to be continued...

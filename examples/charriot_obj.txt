@@ -26,13 +26,13 @@ group sqr_pipe(cs0, side, thick, length):
   rec_2 = rectangle(cs_sqr2, side - 2*thick, side - 2*thick)
   
   # cut sqare 1 by square 2
-  section = surface(CUT, rec_1.res, rec_2.res)
+  rec_1 = surface(CUT, rec_1.res, rec_2.res)
   # hide squares
-  rec_1.hide()
+  #rec_1.hide()
   rec_2.hide()
   
   # extrude section 
-  res = solid(EXTRUSION, section, vz*length)
+  res = solid(EXTRUSION, rec_1, vz*length)
 
 pipe_wid = 20
 pipe_len = 200
@@ -42,4 +42,4 @@ pipe1 = sqr_pipe(cs0, pipe_wid, pipe_thi, pipe_len)
 
 p0_pipe2 = point(50, 20, 30)
 cs_pipe2 = coord_sys(p0_pipe2, vx, vy, vz)
-pipe2 = sqr_pipe(cs_pipe2, pipe_wid*1.5, pipe_thi, pipe_len/2)
+pipe1 = sqr_pipe(cs_pipe2, pipe_wid*1.5, pipe_thi, pipe_len/2)

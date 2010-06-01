@@ -25,13 +25,13 @@ class pycado_obj():
       self.cs0 = cs       
     
     self.args = args
-    self.name = None
+    self.name = "anonym"
     self.parent = None
     
     g_objs.append(self)
     
   def display(self):
-    if self._display == True:
+    if self._display == True and self.name.find("anonym")==-1:
       display.display.DisplayShape(self.topology)
     
   def local_var_to_members(self, local_vars):
