@@ -1,35 +1,31 @@
-#unit ; cm
+side = 5
+width = .2
 
-va_side : 5
-va_width : .2
-#length
+b = point(side, 0, 0)
+c = point(b, 0, side, 0)
+d = point(c, -side, 0 , 0)
 
-pt_origin : [0, 0, 0]
-pt_sqr1_two : [pt_origin, va_side, 0, 0]
-pt_sqr1_tree : [pt_sqr1_two, 0, va_side, 0]
-pt_sqr1_four : [pt_sqr1_tree, -va_side, 0 , 0]
+ab = line(p0, b)
+bc = line(b, c)
+cd = line(c, d)
+da = line(d, p0)
 
-ln_sqr1_one : [pt_origin, pt_sqr1_two]
-ln_sqr1_two : [pt_sqr1_two, pt_sqr1_tree]
-ln_sqr1_tree : [pt_sqr1_tree, pt_sqr1_four]
-ln_sqr1_four : [pt_sqr1_four, pt_origin]
+sqr1 = surface(ab, bc, cd, da)
 
-su_sqr1 : [ln_sqr1_one, ln_sqr1_two, ln_sqr1_tree, ln_sqr1_four]
+e = point(width, width, 0)
+f = point(e, side - 2 * width, 0, 0)
+g = point(f, 0, side - 2 * width, 0)
+h = point(g, -side + 2 * width, 0 , 0)
 
-pt_sqr2_one : [va_width, va_width, 0]
-pt_sqr2_two : [pt_sqr2_one, va_side - 2 * va_width, 0, 0]
-pt_sqr2_tree : [pt_sqr2_two, 0, va_side - 2 * va_width, 0]
-pt_sqr2_four : [pt_sqr2_tree, -va_side + 2 * va_width, 0 , 0]
+ef = line(e, f)
+fg = line(f, g)
+gh = line(g, h)
+he = line(h, e)
 
-ln_sqr2_one : [pt_sqr2_one, pt_sqr2_two]
-ln_sqr2_two : [pt_sqr2_two, pt_sqr2_tree]
-ln_sqr2_tree : [pt_sqr2_tree, pt_sqr2_four]
-ln_sqr2_four : [pt_sqr2_four, pt_sqr2_one]
+sqr2 = surface(ef, fg, gh, he)
 
-su_sqr2 : [ln_sqr2_one, ln_sqr2_two, ln_sqr2_tree, ln_sqr2_four]
+profil = surface(CUT, sqr1, sqr2)
+sqr1.hide()
+sqr2.hide()
 
-su_section : [cut, su_sqr1, su_sqr2]
-su_sqr1.attr : {display: false}
-su_sqr2.attr : {display: false}
-
-so_pipe: [extrusion, su_section, 20*ve_z]
+sqr_pipe= solid(EXTRUSION, profil, 20*vz)

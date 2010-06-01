@@ -1,279 +1,164 @@
-import yaml
+import ast
 import sys
-import cProfile
+from pycado_obj import *
 
-from object import *
+# used only for converting ast to source_code
+# only debug purpose
+from ast import *
+import codegen
 
-# global
-g_expr_sep = [" ", "(", ")", "+", "-", '*', "/", ","];
-g_prefixes = ["va_", "pt_", "ln_", "ve_", "cs_", "ci_", "el_", \
-                "sp_", "su_", "so_", "ob_", "fn_", "pa_"]
-                
-# utils function
-def has_pycado_prefix(var):
-  if isinstance(var, str):  
-    for pref in g_prefixes:
-      if var.startswith(pref):
-        return True
-  return False
+# PRE COMPILER
+# change "group" to object implementing group
+#  + add main function for lonely instructions
+#  + add some instructions
+ 
+class pre_compiler(ast.NodeTransformer):
+  def __init__(self):
+    self.PRIMITIVES = ["point", "line", "coord_sys", "vector", "surface", "solid"]
+    
+    l_str = "pycado_obj.__init__()"
+    l_str += "\np0 = cs0.p0\nvx = cs0.vx\nvy = cs0.vy\nvz = cs0.vz"
+    self.str_init_group = l_str
+    self.parse_end_group = ast.parse("self.local_var_to_members(locals())")
 
-# dependancies
-def get_deps(a_instr):
-  l_deps = set()
-  if isinstance(a_instr, str):
-    l_deps.update(get_pyc_objs(a_instr))
-      
-  if isinstance(a_instr, list):
-    for elt in a_instr:
-      l_deps.update(get_deps(elt))       
+  def generic_visit(self, node):
+    ast.NodeVisitor.generic_visit(self, node)
   
-  return l_deps
+  def visit_Module(self, node):
+    new_body = []
 
-
-def get_pyc_objs(a_str):
-  l_current_str = ""
-  l_pyc_objs = []
-  a_str = a_str + " "
-  for c in a_str:
-    if c in g_expr_sep:
-      if l_current_str != "":
-        if has_pycado_prefix(l_current_str):
-          l_pyc_objs.append(l_current_str)
-        l_current_str = ""
-    else:
-      l_current_str += c
-      
-  return l_pyc_objs
-
-
-# instruction for objects instances
-def get_instantiated_instruction(a_instr, a_inst_name):
-  if isinstance(a_instr, str):
-    l_new_instr = ""
-    l_current_str = ""
-    l_str = a_instr + " "
-    for c in l_str:
-      if c in g_expr_sep:
-        if l_current_str != "":
-          if a_inst_name!=None and has_pycado_prefix(l_current_str):
-            l_current_str = a_inst_name + "." + l_current_str
+    # create main function
+    main = ast.FunctionDef()
+    main.name = "main" 
+    main.args = arguments([], None, None, [])
+    main.decorator_list=[] 
+    main.body = []
+    
+    for n in node.body:
+      self.generic_visit(n)
+      if isinstance(n, ast.FunctionDef) \
+          and n.name.startswith("pycado_object_"):
+        
+        # transform group function in class
+        n.name = n.name[14:]
+        n.args.args = [ast.Name("self", ast.Load())] + n.args.args
+        l_init = ast.parse(self.str_init_group) 
+        l_init.body[0].value.args  = n.args.args
+        for name in l_init.body[0].value.args:
+          name.ctx = ast.Load()
           
-          l_new_instr += l_current_str
-              
-          l_current_str = ""
-  
-        if c != " ":
-          l_new_instr += c
-      else:
-        l_current_str += c
-    
-    return l_new_instr
-      
-  elif isinstance(a_instr, list):
-    if not isinstance(a_instr[0], str) or not a_instr[0].startswith("cs_"):
-      #if a_inst_name==None:
-      a_instr.insert(0, "cs_0")
-      #else:
-      #  a_instr.insert(0, a_inst_name+".cs_0")
-
-    l_instrs = []
-    for elt in a_instr:
-      l_instrs.append(get_instantiated_instruction(elt, a_inst_name))       
-
-    return l_instrs
-  
-  else:
-    return a_instr
-  
-
-# add call to global dict
-def get_call_to_dict(a_instr):
-  if isinstance(a_instr, str):
-    l_new_instr = ""
-    l_current_str = ""
-    l_str = a_instr + " "
-    for c in l_str:
-      if c in g_expr_sep:
-        if l_current_str != "":
-          if has_pycado_prefix(l_current_str):
-            l_current_str = "g_i['" + l_current_str + "'].obj"
-          else:
-            try:
-              float(l_current_str)
-            except ValueError:
-              l_current_str = "'" + l_current_str + "'"
-              
-          l_new_instr += l_current_str      
-          l_current_str = ""
-        l_new_instr += c
-  
-      else:
-        l_current_str += c
-    return l_new_instr
+        n.body = l_init.body + n.body + self.parse_end_group.body       
+        class_def = ast.ClassDef()
+        class_def.name = n.name
+        class_def.bases = [ast.Name("group", ast.Load())]
+        n.name="__init__"
+        class_def.body = [n]
+        class_def.decorator_list=[]
+        new_body.append(class_def)
         
-  elif isinstance(a_instr, list):
-    l_instrs = []
-    for elt in a_instr:
-      l_instrs.append(get_call_to_dict(elt))       
-
-    return l_instrs
-  else:
-    return a_instr
-  
-
-
-
-class DefObj:
-  def __init__(self, a_name, a_map):
-    self.m_name = a_name
-    self.m_instrs = a_map
-  
-  def get_instantiated_instrs(self, a_inst_name):
-    l_instrs = {} 
-    for k, v in self.m_instrs.items():
-      if k == "params":
-        # add parameters initialisations instructions
-        for i in range(len(v)):
-          l_ind = a_inst_name.rfind(".")
-          if l_ind==-1:
-            l_instrs[a_inst_name + "." + v[i]] = get_instantiated_instruction(g_instrs[a_inst_name][i], None)
-          else:
-            l_instrs[a_inst_name + "." + v[i]] = get_instantiated_instruction(g_instrs[a_inst_name][i], a_inst_name[:l_ind])
-          
-        # add pt_0, ve_x, ve_y, ve_z
-        l_instrs[a_inst_name + ".pt_0"] = ["cs_0", 0, 0, 0]
-        l_instrs[a_inst_name + ".ve_x"] = ["cs_0", "x"]
-        l_instrs[a_inst_name + ".ve_y"] = ["cs_0", "y"]
-        l_instrs[a_inst_name + ".ve_z"] = ["cs_0", "z"]
-
-     # elif k == "return":
-        # object instance = alias on returned object
-     #   l_instrs[a_inst_name] = get_instantiated_instruction(v, a_inst_name) 
-      elif k.find(".attr")!=-1:
-        key = k[:k.find(".attr")]
-        g_attrs[a_inst_name + "." + key.strip()] = v  
-      elif k.startswith("ob_"):
-        g_instrs[a_inst_name + "." +k] = v
-        obj_name = k[0: 3 + k[3:].find("_")]
-        l_instrs.update(g_def_objs[obj_name].get_instantiated_instrs(a_inst_name + "." +k))
-        l_instrs[a_inst_name + "." + k] = get_instantiated_instruction(v, a_inst_name)
-      else:
-        l_instrs[a_inst_name + "." + k] = get_instantiated_instruction(v, a_inst_name)
+      elif not isinstance(n, ast.FunctionDef) \
+            and not isinstance(n, ast.ClassDef):
+        # add lonely node to main
+        main.body.append(n)
+      else :
+        new_body.append(n)
     
-    return l_instrs
-      
+    # add initialisations to main    
+    l_init = "p0 = point(None, 0, 0, 0)"
+    l_init += "\n__p1 = point(None, 1, 0, 0)"
+    l_init += "\n__p2 = point(None, 0, 1, 0)"
+    l_init += "\n__p3 = point(None, 0, 0, 1)"
   
-
-class Instance:
-  def __init__(self, a_key_instr, a_deps, a_forced_instr=""):
-    self.m_deps = a_deps
+    l_init  += "\nvx = vector(None, p0, __p1)"
+    l_init  += "\nvy = vector(None, p0, __p2)"
+    l_init  += "\nvz = vector(None, p0, __p3)"
+    l_init  += "\ncs0 = coord_sys(None, p0, vx, vy, vz)"
     
-    if a_forced_instr=="" :
-      self.m_call = self.instr_to_call(a_key_instr, g_instrs[a_key_instr])
-    else: 
-      self.m_call = self.instr_to_call(a_key_instr, a_forced_instr) 
-      
-    if isinstance(self.m_call[1], str):
-      self.obj = eval(self.m_call[1])
-      if isinstance(self.obj, Object):
-        l_display = True
-        if self.m_call[0] in g_attrs:
-          if "display" in g_attrs[self.m_call[0]]:
-            l_display = g_attrs[self.m_call[0]]["display"]
-        
-        if l_display:
-          self.obj.display()
-        
+    main.body = ast.parse(l_init).body + main.body 
+    
+    # add main locals to g_obj 
+    l_end = "for k, v in locals().items():"
+    l_end += "\n  if isinstance(v, pycado_obj):"
+    l_end += "\n    v.name = k"
+    l_end += "\n    v.parent = None"
+
+    main.body = main.body + ast.parse(l_end).body
+    
+    new_body.append(main)  
+    node.body = new_body   
+
+  def visit_Call(self, node):    
+    if isinstance(node.func, ast.Name):
+      if node.func.id in self.PRIMITIVES:
+        # add first arg cs0 in PRIMITIVES call
+        node.args = [ast.Name("cs0", ast.Load())] + node.args    
+
+
+# add lineno and col_offset to nodes
+#TODO: apply function only on created nodes
+class fix_tree(ast.NodeTransformer):
+  def generic_visit(self, node):
+    if not hasattr(node, 'lineno'):
+      node.lineno = 0
     else:
-      self.obj = self.m_call[1]
-    
-    self.is_resolved = True
-    
-  def instr_to_call(self, a_key_instr, a_instr):
-    l_instr = get_call_to_dict(a_instr)
-    if isinstance(l_instr, list):
-      l_instr_str = a_key_instr.rpartition(".")[2][:2] + "("
-       
-      for expr in l_instr:
-        l_instr_str += str(expr) + ", "
-      
-      if l_instr_str.endswith(", "):
-        l_instr_str = l_instr_str[0:len(l_instr_str)-2] + ")"
-        
+      lineno = node.lineno
+    if not hasattr(node, 'col_offset'):
+      node.col_offset = 0
     else:
-      l_instr_str = l_instr      
-
-    if a_key_instr.rpartition(".")[-1].startswith("ob_"):
-      l_instr_str = "ob('" + a_key_instr + "')"
-          
-    return a_key_instr, l_instr_str
-  
-
-def instanciate(a_inst_name):
-  if a_inst_name not in g_i or not g_i[a_inst_name].is_resolved:
-    l_instr = g_instrs[a_inst_name]
-    l_deps = get_deps(l_instr)
-    if len(l_deps) != 0:
-      for l_elt in l_deps:
-        instanciate(l_elt)
+      col_offset = node.col_offset  
+    ast.NodeVisitor.generic_visit(self, node)
     
-    g_i[a_inst_name] = Instance(a_inst_name, l_deps)      
-              
     
+    
+##############################
+###  START PROGRAM
+##############################             
 
-def load_prog(a_map, a_parent):
-  # separate instructions and definitions of object
-  for k, v in a_map.items(): 
-    if k.strip().startswith("def"):
-      l_ind_params = k.find("(")
-      l_obj_name = k.strip()[4:l_ind_params].strip() 
-      l_params = k[l_ind_params+1:k.find(")")].strip().split(",")
-      v["params"] = [elem.strip() for elem in l_params]     
-      g_def_objs[l_obj_name] = DefObj(l_obj_name, v)
-    elif k.find(".attr")!=-1:
-      key = k[:k.find(".attr")]
-      g_attrs[key.strip()] = v  
-    else: 
-      g_instrs[k] = get_instantiated_instruction(v, None) #v
+# READ FILE                                  
+l_f = file(sys.argv[1], 'r')
+
+# TRANSFORM group x -> def pycado_object_x
+l_src = ""  
+l = l_f.readline()
+while l:
+  if l.strip().startswith("group "):
+    #todo: to improve. Here fails when several spaces between group and group name
+    l = l.replace("group ", "def pycado_object_")
+  l_src += l
+  l = l_f.readline()
+
+# PERFORM PREPROCESSING:
+# - transform groups in classes with some initialisation
+# - add cs0 in primitives calling
+# - make a function grouping lonely instructions
+    
+l_ast = ast.parse(l_src)
+l_pre_compiler = pre_compiler()
+l_pre_compiler.visit(l_ast)
+#print dump(l_ast)
+
+fixer = fix_tree()
+fixer.visit(l_ast)
+
+# EXECUTE!
+print("# CODE GENERATED")
+print(codegen.to_source(l_ast))
+eval(compile(l_ast, sys.argv[1], 'exec'))
+
+# call main from pycado_file
+main()
+
+print("\n# PYCADO_OBJ LIST")
+
+for o in g_objs:
+  name = o.name
+  o2 = o
+  while o2.parent!=None:
+    name = o2.parent.name + "." + name
+    o2 = o2.parent
+    
+  print name, "display=",o._display    
+  o.build()
+  o.display()
       
-  
-  # add all instructions corresponding to objects instanciations
-  l_new_instrs = {}
-  for k, v in g_instrs.items():
-    if k.startswith("ob_"):
-      obj_name = k[0: 3 + k[3:].find("_")]
-      l_new_instrs.update(g_def_objs[obj_name].get_instantiated_instrs(k))
-      g_instrs.update(l_new_instrs)
-      
-  # instanciate each instruction
-  for k, v in g_instrs.items():
-    instanciate(k)
-
-         
-
-# MAIN
-stream = file(sys.argv[1], 'r')
-src_code = yaml.load(stream)
-
-g_def_objs = {}
-g_instrs = {}
-g_attrs = {}
-g_i = {}
-
-# Initial coordinate system
-g_i["pt_0"] = Instance("pt_0", [], [None, 0, 0, 0])
-g_i["ve_x"] = Instance("ve_x", [], [None, "x"])
-g_i["ve_y"] = Instance("ve_y", [], [None, "y"])
-g_i["ve_z"] = Instance("ve_z", [], [None, "z"])
-g_i["cs_0"] = Instance("cs_0", ["pt_0", "ve_x", "ve_y", "ve_z"], 
-                        [None, "pt_0", "ve_x", "ve_y", "ve_z"])
-
-#cProfile.run('load_prog(src_code, "")')
-load_prog(src_code, "")
 display.start_display()
-
-                  
-    
-  
-    
-     
