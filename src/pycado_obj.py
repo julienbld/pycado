@@ -29,7 +29,11 @@ class pycado_obj():
     self.parent = None
     
     g_objs.append(self)
-    
+  
+  def update_name(self):
+    if self.parent != None:
+      self.name = self.parent.name + "." + self.name
+      
   def display(self):
     if self._display == True and self.name.find("anonym")==-1:
       display.display.DisplayShape(self.topology)
@@ -50,10 +54,12 @@ class pycado_obj():
     self._display = False
   
   def build(self):
-    a=2
+    self.update_name()
       
 class point(pycado_obj):
   def build(self):
+    self.update_name()
+    
     args = self.args
     
     if isinstance(args[0], point):
@@ -75,6 +81,7 @@ class point(pycado_obj):
 
 class line(pycado_obj):
   def build(self):
+    self.update_name()
     args = self.args
     p1 = args[0]
     p2 = args[1]
@@ -83,6 +90,7 @@ class line(pycado_obj):
 
 class vector(pycado_obj):
   def build(self):
+    self.update_name()
     args = self.args
     self._display = False
     if args[0]=="mul":
@@ -122,6 +130,7 @@ class coord_sys(pycado_obj):
 
 class surface(pycado_obj):
   def build(self):
+    self.update_name()
     args = self.args
     if isinstance(args[0], str):
       if args[0] == "cut":
@@ -139,6 +148,7 @@ class surface(pycado_obj):
 
 class solid(pycado_obj):
   def build(self):
+    self.update_name()
     args = self.args
     if isinstance(args[0], str):
       if args[0] == "extrusion":

@@ -151,14 +151,9 @@ main()
 print("\n# PYCADO_OBJ LIST")
 
 for o in g_objs:
-  name = o.name
-  o2 = o
-  while o2.parent!=None:
-    name = o2.parent.name + "." + name
-    o2 = o2.parent
-    
-  print name, "display=",o._display    
   o.build()
   o.display()
+  print o.name, o    
+
       
 display.start_display()
