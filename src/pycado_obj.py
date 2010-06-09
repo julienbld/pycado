@@ -154,6 +154,12 @@ class solid(pycado_obj):
       if args[0] == "extrusion":
         self.topology = BRepPrimAPI_MakePrism(args[1].topology, args[2].data).Shape()
 
+class nurb(pycado_obj):
+  def build(self):
+    self.update_name()
+    args = self.args
+    self.topology = BRepBuilderAPI_NurbsConvert(args[0].topology).Shape()
+
 class group(pycado_obj): 
   def display(self):
     a=2
