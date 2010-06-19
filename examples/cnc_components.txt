@@ -35,13 +35,13 @@ group sqr_pipe(cs0, side, thick, length):
   res = solid(EXTRUSION, section, vz*length)
 
 
-group nut(cs_0, side_len, int_diam, thi):
+group nut(cs0, side_len, int_diam, thi):
   # hexagone 
   # c**2 = (c/2)**2 + (h/2)**2
   # (h/2)**2 = c**2 - (c/2)**2
   #  h/2 = c*sqr(3)/2
   # h = c*sqr(3)
-  hexa_height = side_len * sqr(3) * 0.5
+  hexa_height = side_len * sqrt(3)
   a = point(-side_len, 0, 0)
   b = point(-side_len/2, hexa_height/2, 0)
   c = point(side_len/2, hexa_height/2, 0)
@@ -59,14 +59,17 @@ group nut(cs_0, side_len, int_diam, thi):
   hex  = surface(ab, bc, cd, de, ef, fa)
   
   # hole
-  c1 = circle(p0, vz, int_diam)
-  su_c1  = surface(c1)
+  #c1 = circle(p0, vz, int_diam)
+  #su_c1  = surface(c1)
+  coin = point(-int_diam/2, -int_diam/2, 0)
+  cs1 = coord_sys(coin, vx, vy, vz)
+  su_c1 = rectangle(cs1, int_diam, int_diam)
 
   # intersection
-  section  = surface(CUT, hex, su_c1)
+  section  = surface(CUT, hex, su_c1.res)
   hex.hide()
   su_c1.hide()
-  
+
   res = solid(EXTRUSION, section, vz*thi)
 
 
@@ -95,14 +98,14 @@ group roll_20(cs0):
   res = r.res
 
 group nut_8(cs0):
-  res = nut(cs0, 12, 8, 6)
+  res = nut(cs0, 10, 8, 6)
   
 group roll_mount(cs0, g_vars):
   cs_nut_1 = coord_sys(cs0, TRANSLATION, -g_vars.nut_thi*vz)
   nut_1 = nut_8(cs_nut_1)
   
-  cs_washer_1 = coord_sys(cs_nut_1, TRANSLATION, \ 
-                          (g_vars.nut_thi + g_vars.pipe_wid)*vz)
+  cs_washer_1 = coord_sys(cs_nut_1, TRANSLATION, 
+	(g_vars.nut_thi + g_vars.pipe_wid)*vz)
   washer_1 = washer_8(cs_washer_1)
   
   cs_roll_1 = coord_sys(cs_washer_1, TRANSLATION, g_vars.washer_thi*vz)  
@@ -165,15 +168,19 @@ p4 = point(0, g_vars.cha_wid, 0)
 cs_4 = coord_sys(p4, vx, vy, vz)
 pipe_4 = sqr_pipe(cs_4, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
 
+p_test = point(g_vars.pipe_wid/2, g_vars.pipe_wid/2, 0)
+cs_test =  coord_sys(p_test, vx, vy, vz)
+nut_test = nut_8(cs_test)
+
 # 8 rods
-cs_zx = coord_sys(p0, vz, vx, vy)
-cs_yx = coord_sys(p0, vz, vy, -vx)
+#cs_zx = coord_sys(p0, vz, vx, vy)
+#cs_yx = coord_sys(p0, vz, vy, -vx)
 
-cs_rm_zx = coord_sys(cs_zx, TRANSLATION, vz, -g_vars.pipe_wid / 2)
-cs_rm_1 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
-rm_1 = rod_mount(cs_rm_1, g_vars)
+#cs_rm_zx = coord_sys(cs_zx, TRANSLATION, vz, -g_vars.pipe_wid / 2)
+#cs_rm_1 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
+#rm_1 = rod_mount(cs_rm_1, g_vars)
 
-cs_rm_2 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
-rm_2 = rod_mount(cs_rm_2, g_vars)
+#cs_rm_2 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
+#rm_2 = rod_mount(cs_rm_2, g_vars)
 
 # to be continued...

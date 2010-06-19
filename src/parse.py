@@ -1,11 +1,16 @@
 import ast
 import sys
+import traceback
+
 from pycado_obj import *
 
 # used only for converting ast to source_code
 # only debug purpose
 from ast import *
 import codegen
+
+import glob
+from math import *
 
 # PRE COMPILER
 # change "group" to object implementing group
@@ -25,11 +30,12 @@ class pre_compiler(ast.NodeTransformer):
     ast.NodeVisitor.generic_visit(self, node)
   
   def visit_Module(self, node):
+    
     new_body = []
 
     # create main function
     main = ast.FunctionDef()
-    main.name = "main" 
+    main.name = "pycado_main" 
     main.args = arguments([], None, None, [])
     main.decorator_list=[] 
     main.body = []
@@ -60,6 +66,8 @@ class pre_compiler(ast.NodeTransformer):
             and not isinstance(n, ast.ClassDef):
         # add lonely node to main
         main.body.append(n)
+        #new_body.append(n)
+        
       else :
         new_body.append(n)
     
@@ -73,9 +81,9 @@ class pre_compiler(ast.NodeTransformer):
     l_init  += "\nvy = vector(None, p0, __p2)"
     l_init  += "\nvz = vector(None, p0, __p3)"
     l_init  += "\ncs0 = coord_sys(None, p0, vx, vy, vz)"
-    
+        
     main.body = ast.parse(l_init).body + main.body 
-    
+    #new_body = ast.parse(l_init).body + new_body 
     # add main locals to g_obj 
     l_end = "for k, v in locals().items():"
     l_end += "\n  if isinstance(v, pycado_obj):"
@@ -83,8 +91,9 @@ class pre_compiler(ast.NodeTransformer):
     l_end += "\n    v.parent = None"
 
     main.body = main.body + ast.parse(l_end).body
-    
+    #new_body = new_body + ast.parse(l_end).body
     new_body.append(main)  
+    
     node.body = new_body   
 
   def visit_Call(self, node):    
@@ -109,51 +118,56 @@ class fix_tree(ast.NodeTransformer):
     ast.NodeVisitor.generic_visit(self, node)
     
     
+def display_file(a_filename):
+  try:               
+    # READ FILE                                  
+    l_f = file(a_filename, 'r')
     
-##############################
-###  START PROGRAM
-##############################             
-
-# READ FILE                                  
-l_f = file(sys.argv[1], 'r')
-
-# TRANSFORM group x -> def pycado_object_x
-l_src = ""  
-l = l_f.readline()
-while l:
-  if l.strip().startswith("group "):
-    #todo: to improve. Here fails when several spaces between group and group name
-    l = l.replace("group ", "def pycado_object_")
-  l_src += l
-  l = l_f.readline()
-
-# PERFORM PREPROCESSING:
-# - transform groups in classes with some initialisation
-# - add cs0 in primitives calling
-# - make a function grouping lonely instructions
+    # TRANSFORM group x -> def pycado_object_x
+    l_src = ""  
+    l = l_f.readline()
+    while l:
+      if l.strip().startswith("group "):
+        #todo: to improve. Here fails when several spaces between group and group name
+        l = l.replace("group ", "def pycado_object_")
+      l_src += l
+      l = l_f.readline()
     
-l_ast = ast.parse(l_src)
-l_pre_compiler = pre_compiler()
-l_pre_compiler.visit(l_ast)
-#print dump(l_ast)
+    l_f.close()
+    
+    # PERFORM PREPROCESSING:
+    # - transform groups in classes with some initialisation
+    # - add cs0 in primitives calling
+    # - make a function grouping lonely instructions
+        
+    print l_src
+    
+    l_ast = ast.parse(l_src, a_filename)
+    
+    l_pre_compiler = pre_compiler()
+    l_pre_compiler.visit(l_ast)
+    #print dump(l_ast)
+    
+    fixer = fix_tree()
+    fixer.visit(l_ast)
+    
+    # EXECUTE!
+    print("# CODE GENERATED")
+    print(codegen.to_source(l_ast))
+    #print dump(l_ast)
+    
+    exec compile(l_ast, a_filename, 'exec') in globals()
+    
+  
+    pycado_main()
+    print("\n# PYCADO_OBJ LIST")
+    
+    for o in glob.get_objs():
+      o.build()
+      o.display()
+      print o.name, o    
 
-fixer = fix_tree()
-fixer.visit(l_ast)
-
-# EXECUTE!
-print("# CODE GENERATED")
-print(codegen.to_source(l_ast))
-eval(compile(l_ast, sys.argv[1], 'exec'))
-
-# call main from pycado_file
-main()
-
-print("\n# PYCADO_OBJ LIST")
-
-for o in g_objs:
-  o.build()
-  o.display()
-  print o.name, o    
-
-      
-display.start_display()
+  except:
+    print sys.exc_info()
+    glob.log(traceback.format_exc())
+  

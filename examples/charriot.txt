@@ -30,4 +30,4 @@ sqr2.hide()
 
 sqr_pipe = solid(EXTRUSION, profil, 20*vz)
 
-nu = nurb(sqr_pipe)
+#nu = nurb(sqr_pipe)

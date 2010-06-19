@@ -8,7 +8,7 @@ from OCC.TopAbs import *
 
 from OCC.TopoDS import *
 
-import display
+import glob
 import inspect
 import numbers
 
@@ -17,8 +17,7 @@ class pycado_obj():
   
   def __init__(self, cs, *args):
     self._display = True
-    
-    if isinstance(args[0], coord_sys):
+    if len(args)>0 and isinstance(args[0], coord_sys):
       self.cs0 = args[0]
       args = args[1:]
     else:
@@ -28,7 +27,7 @@ class pycado_obj():
     self.name = "anonym"
     self.parent = None
     
-    g_objs.append(self)
+    glob.add_obj(self)
   
   def update_name(self):
     if self.parent != None:
@@ -36,7 +35,8 @@ class pycado_obj():
       
   def display(self):
     if self._display == True and self.name.find("anonym")==-1:
-      display.display.DisplayShape(self.topology)
+      glob.display(self.topology)
+      #canva.DisplayShape()
     
   def local_var_to_members(self, local_vars):
     for k, v in local_vars.items():
@@ -162,7 +162,7 @@ class nurb(pycado_obj):
 
 class group(pycado_obj): 
   def display(self):
-    a=2
+    pass
        
   def hide(self):
     for k, v in inspect.getmembers(self):
@@ -176,9 +176,7 @@ class group(pycado_obj):
 
 
 
-# GLOBAL VARS
-# Initial coordinate system
-g_objs = []          
+# GLOBAL VARS  
 
 CUT = "cut"
 EXTRUSION = "extrusion"
