@@ -19,7 +19,8 @@ from math import *
  
 class pre_compiler(ast.NodeTransformer):
   def __init__(self):
-    self.PRIMITIVES = ["point", "line", "coord_sys", "vector", "surface", "solid", "nurb"]
+    self.PRIMITIVES = ["point", "line", "coord_sys", "vector", 
+                        "surface", "solid", "nurb", "circle"]
     
     l_str = "pycado_obj.__init__()"
     l_str += "\np0 = cs0.p0\nvx = cs0.vx\nvy = cs0.vy\nvz = cs0.vz"

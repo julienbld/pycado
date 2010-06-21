@@ -35,7 +35,8 @@ group sqr_pipe(cs0, side, thick, length):
   res = solid(EXTRUSION, section, vz*length)
 
 
-group nut(cs0, side_len, int_diam, thi):
+
+group hex(cs0, side_len):
   # hexagone 
   # c**2 = (c/2)**2 + (h/2)**2
   # (h/2)**2 = c**2 - (c/2)**2
@@ -56,33 +57,37 @@ group nut(cs0, side_len, int_diam, thi):
   ef  = line(e, f)
   fa  = line(f, a)
   
-  hex  = surface(ab, bc, cd, de, ef, fa)
-  
+  res  = surface(ab, bc, cd, de, ef, fa)
+
+group nut(cs0, side_len, int_diam, thi):
+
+  hexa = hex(cs0, side_len)
   # hole
-  #c1 = circle(p0, vz, int_diam)
-  #su_c1  = surface(c1)
-  #coin = point(-int_diam/2, -int_diam/2, 0)
-  #cs1 = coord_sys(coin, vx, vy, vz)
-  cs1 = coord_sys(TRANSLATE, 
-			(-int_diam/2)*vx + (-int_diam/2)*vy)
-  su_c1 = rectangle(cs1, int_diam, int_diam)
+  c1 = circle(p0, vz, int_diam/2)
+  su_c1  = surface(c1)
 
   # intersection
-  section  = surface(CUT, hex, su_c1.res)
-  hex.hide()
+  section  = surface(CUT, hexa.res, su_c1)
+  hexa.hide()
   su_c1.hide()
 
   res = solid(EXTRUSION, section, vz*thi)
 
 
 group rod(cs0, diam, len):
-  sc1  = surface(circle(p0, vz, diam))
-  res = (EXTRUSION, sc1, vz*len)
+  c1 = circle(p0, vz, diam/2)
+  sc1  = surface(c1) 
+  # TODO: DEBUG!!!
+  #sc1  = surface(circle(p0, vz, diam/2))
+  sc1.hide()
+  res = solid(EXTRUSION, sc1, vz*len)
 
 
 group roll(cs0, int_diam, ext_diam, height):
-  sc1  = surface(cercle(p0, vz, ext_diam))
-  sc2  = surface(cercle(p0, vz, int_diam))
+  c1 = circle(p0, vz, ext_diam/2)
+  sc1  = surface(c1)
+  c2 = circle(p0, vz, int_diam/2)
+  sc2  = surface(c2)
   # intersection
   section  = surface(CUT, sc1, sc2)
   sc1.hide()
@@ -100,20 +105,23 @@ group roll_20(cs0):
   res = r.res
 
 group nut_8(cs0):
-  res = nut(cs0, 10, 8, 6)
+  res = nut(cs0, 8, 8, 6)
   
 group roll_mount(cs0, g_vars):
-  cs_nut_1 = coord_sys(cs0, TRANSLATION, -g_vars.nut_thi*vz)
+  cs_nut_1 = coord_sys(cs0, TRANSLATE, 
+			-g_vars.nut_8_thi*vz)
   nut_1 = nut_8(cs_nut_1)
   
-  cs_washer_1 = coord_sys(cs_nut_1, TRANSLATION, 
-	(g_vars.nut_thi + g_vars.pipe_wid)*vz)
+  cs_washer_1 = coord_sys(cs_nut_1, TRANSLATE, 
+	(g_vars.nut_8_thi + g_vars.pipe_wid)*vz)
   washer_1 = washer_8(cs_washer_1)
   
-  cs_roll_1 = coord_sys(cs_washer_1, TRANSLATION, g_vars.washer_thi*vz)  
+  cs_roll_1 = coord_sys(cs_washer_1, TRANSLATE, 
+		g_vars.washer_thi*vz)  
   roll_1 = roll_20(cs_roll_1)
 
-  cs_nut_2 = coord_sys(cs_roll_1, TRANSLATION, g_vars.roll_20_thi*vz)
+  cs_nut_2 = coord_sys(cs_roll_1, TRANSLATE, 
+		g_vars.roll_20_thi*vz)
   nut_2 = nut_8(cs_nut_2)
   
   
@@ -121,16 +129,18 @@ group rod_mount(cs0, g_vars):
   # margin after nuts
   offset = -g_vars.margin -g_vars.nut_8_thi 
   cs_rod_1 = coord_sys(cs0, TRANSLATE, offset*vz) 
-  rod_1 = rod(cs0, g_vars.rod_8_diam, 
+  rod_1 = rod(cs_rod_1, g_vars.rod_8_diam, 
 	g_vars.cha_wid + 2*(g_vars.nut_8_thi+g_vars.margin))
   
   # bottom rod_mount
-  rm_1 = rod_mount(cs0, g_vars)
+  rm_1 = roll_mount(cs0, g_vars)
   
   # top rod_mount
-  cs_rm_2 = coord_sys(cs0, TRANSLATE, g_vars.cha_wid*vz)
-  cs_rm_2 = coord_sys(cs_rm_2, ROTATE, vy, 3.14)
-  rm_2 = rod_mount(cs_rm_2, g_vars) 
+  cs_rm_2 = coord_sys(cs0, ROTATE, vy, 3.14)
+  cs_rm_2 = coord_sys(cs_rm_2, TRANSLATE, 
+			g_vars.cha_wid*vz)
+  
+  rm_2 = roll_mount(cs_rm_2, g_vars) 
   
 
 # GLOBAL VARS
@@ -148,7 +158,7 @@ group vars(cs0):
   nut_8_side = 12 
   nut_8_thi = 6
   washer_thi = 3
-  roll_thi = 7
+  roll_20_thi = 7
   
   
   
@@ -159,34 +169,52 @@ g_vars = vars(cs0)
 # pipes
 pipe_1 = sqr_pipe(cs0, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
 
-vt = vx*g_vars.cha_wid
+#TODO: ADD sub operation
+vt = vx*(g_vars.cha_wid -g_vars.pipe_wid)
 cs = coord_sys(TRANSLATE, vt)
 pipe_2 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
 
-vt += vy*g_vars.cha_wid
+vt += vy*(g_vars.cha_wid -g_vars.pipe_wid)
 cs = coord_sys(TRANSLATE, vt)
 pipe_3 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
 
-vt = vy*g_vars.cha_wid
+vt = vy*(g_vars.cha_wid -g_vars.pipe_wid)
 cs = coord_sys(TRANSLATE, vt)
 pipe_4 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
 
-cs_nut = coord_sys(ROTATE,  vx, 3.14/2)
-vt = vx*(g_vars.pipe_wid/2) + vz*30
-cs_nut = coord_sys(cs_nut, TRANSLATE,  vt)
-nut_test = nut_8(cs_nut)
 
-#rm_1 = rod_mount(cs0, g_vars)
 
 # 8 rods
-#cs_zx = coord_sys(p0, vz, vx, vy)
-#cs_yx = coord_sys(p0, vz, vy, -vx)
+# first side
+cs_y = coord_sys(cs0, ROTATE, vx, -pi/2)
+cs_rm1 = coord_sys(cs_y, TRANSLATE, vx*(g_vars.pipe_wid/2))
+cs_rm1_1 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_1)
+rm_1_1 = rod_mount(cs_rm1_1, g_vars)
 
-#cs_rm_zx = coord_sys(cs_zx, TRANSLATION, vz, -g_vars.pipe_wid / 2)
-#cs_rm_1 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
-#rm_1 = rod_mount(cs_rm_1, g_vars)
+cs_rm1_2 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_2)
+rm_1_2 = rod_mount(cs_rm1_2, g_vars)
 
-#cs_rm_2 = coord_sys(cs_zx, TRANSLATION, vx, g_vars.rod_1_1)
-#rm_2 = rod_mount(cs_rm_2, g_vars)
+cs_rm2 = coord_sys(cs_rm1, TRANSLATE, 
+		vx*(g_vars.cha_wid - g_vars.pipe_wid))
+cs_rm2_1 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_1)
+rm_2_1 = rod_mount(cs_rm2_1, g_vars)
 
-# to be continued...
+cs_rm2_2 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_2)
+rm_2_2 = rod_mount(cs_rm2_2, g_vars)
+
+# second side
+cs_x = coord_sys(cs0, ROTATE, vy, pi/2)
+cs_rm3 = coord_sys(cs_x, TRANSLATE, vy*(g_vars.pipe_wid/2))
+cs_rm3_1 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_1)
+rm_3_1 = rod_mount(cs_rm3_1, g_vars)
+
+cs_rm3_2 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_2)
+rm_3_2 = rod_mount(cs_rm3_2, g_vars)
+
+cs_rm4= coord_sys(cs_rm3, TRANSLATE, 
+	vy*(g_vars.cha_wid - g_vars.pipe_wid))
+cs_rm4_1 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_1)
+rm_4_1 = rod_mount(cs_rm4_1, g_vars)
+
+cs_rm4_2 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_2)
+rm_4_2 = rod_mount(cs_rm4_2, g_vars)

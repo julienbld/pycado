@@ -78,6 +78,7 @@ class point(pycado_obj):
     self.data = gp_Pnt(args[0], args[1], args[2])
     
     if pt_or != None:
+      #TODO: Write real treatment (to check)
       self.data.Translate(self.cs0.p0.data, pt_or.data)
       
     if self.cs0!=None:
@@ -108,6 +109,18 @@ class line(pycado_obj):
     #self.data = gp_Lin(gp_Ax1(pt_1.data, gp_Dir(pt_2.value[0], pt_2.value[1], pt_2.value[2])))
     self.topology = BRepBuilderAPI_MakeEdge(p1.data, p2.data).Edge()
 
+class circle(pycado_obj):
+  def build(self):
+    self.update_name()
+    args = self.args
+    print args
+    p = args[0]
+    v_norm = args[1]
+    r = args[2]
+    self.data = gp_Circ(gp_Ax2(p.data, gp_Dir(v_norm.data)), r)
+    self.topology = BRepBuilderAPI_MakeEdge(self.data).Edge()
+    
+    
 class vector(pycado_obj):
   def create(self, gp_pnt, gp_vec):
     #todo: check: maybe a bug!
