@@ -26,8 +26,12 @@ class pycado_obj():
     self.args = args
     self.name = "anonym"
     self.parent = None
+    self.data = None
     
-    glob.add_obj(self)
+    if len(args)>0 and args[0] == "intern":
+      self.create(*args[1:])
+    else: 
+      glob.add_obj(self)
   
   def update_name(self):
     if self.parent != None:
@@ -57,9 +61,12 @@ class pycado_obj():
     self.update_name()
       
 class point(pycado_obj):
+  def create(self, gp_pnt):
+    self.data = gp_pnt
+    self.topology = BRepBuilderAPI_MakeVertex(self.data).Vertex()
+    
   def build(self):
     self.update_name()
-    
     args = self.args
     
     if isinstance(args[0], point):
@@ -70,15 +77,28 @@ class point(pycado_obj):
             
     self.data = gp_Pnt(args[0], args[1], args[2])
     
-    if self.cs0!=None:
-      self.data = self.data.Translated(gp().Origin(), self.cs0.p0.data)
-      
     if pt_or != None:
-      self.data = self.data.Translated(self.cs0.p0.data, pt_or.data)
+      self.data.Translate(self.cs0.p0.data, pt_or.data)
       
+    if self.cs0!=None:
+      if self.cs0.trsf != None:
+        self.data.Transform(self.cs0.trsf)
+                    
+            
     self.topology = BRepBuilderAPI_MakeVertex(self.data).Vertex()
 
-
+  def update(self, gp_pnt):
+    self.data = gp_pnt
+    self.topology = BRepBuilderAPI_MakeVertex(self.data).Vertex()        
+  
+  def __str__(self):
+    ret = self.name 
+    if self.data != None:
+      ret += "=(" + str(self.data.X()) + ", " 
+      ret += str(self.data.Y()) + ", "
+      ret += str(self.data.Z()) + ")"
+    return ret
+    
 class line(pycado_obj):
   def build(self):
     self.update_name()
@@ -89,25 +109,45 @@ class line(pycado_obj):
     self.topology = BRepBuilderAPI_MakeEdge(p1.data, p2.data).Edge()
 
 class vector(pycado_obj):
-  def build(self):
+  def create(self, gp_pnt, gp_vec):
+    #todo: check: maybe a bug!
+    self.data = gp_vec
+    self.p1 = point(None, "intern", gp_pnt)
+    self.p2 = point(None, "intern", gp_pnt.Translated(gp_vec))
+    self.topology = BRepBuilderAPI_MakeEdge(self.p1.data, self.p2.data).Edge()
+    # = point(self.cs0, 0, 0, 0)
+    #self.p1.build()
+    #self.p2 = point(self.cs0, 0, 0, 1)
+    #self.p2.build() 
+
+  def build(self): 
     self.update_name()
     args = self.args
     self._display = False
     if args[0]=="mul":
-      self.data = args[1].data
-      self.data = self.data.Multiplied(args[2])
-      #todo: corriger
-      self.p1 = point(self.cs0, 0, 0, 0)
-      self.p1.build()
-      self.p2 = point(self.cs0, 0, 0, 1)
-      self.p2.build()  
+      self.data = args[1].data.Multiplied(args[2])
+      self.p1 = point(None, "intern", args[1].p1.data)
+      self.p2 = point(None, "intern", self.p1.data.Translated(self.data)) 
+      
+    elif args[0]=="add":
+      self.data = args[1].data.Added(args[2].data)
+      self.p1 = point(None, "intern", args[1].p1.data)
+      self.p2 = point(None, "intern", self.p1.data.Translated(self.data)) 
     else:
       self.p1 = args[0]
       self.p2 = args[1]
       self.data = gp_Vec(self.p1.data, self.p2.data)
 
-    self.topology = BRepBuilderAPI_MakeEdge(self.p1.data, self.p2.data).Edge()
+    self.topology = BRepBuilderAPI_MakeEdge(self.p1.data, self.p2.data).Edge() 
 
+  def update(self, gp_pnt, gp_vec):
+    #todo: check: maybe a bug!
+    self.data = gp_vec
+    self.p1.update(gp_pnt)
+    self.p2.update(gp_pnt.Translated(gp_vec))
+    self.topology = BRepBuilderAPI_MakeEdge(self.p1.data, self.p2.data).Edge()
+      
+  
   def __mul__(self, other):
     if isinstance(other, numbers.Number):
       #todo: corriger
@@ -119,15 +159,95 @@ class vector(pycado_obj):
   def __rmul__(self, other):
     return self.__mul__(other)
 
-class coord_sys(pycado_obj):
-  def __init__(self, cs, *args): 
-    self._display = False
-    self.p0 = args[0]
-    self.vx = args[1]
-    self.vy = args[2]
-    self.vz = args[3]
-  
+  def __add__(self, other):
+    if isinstance(other, vector):
+      ve_new = vector(self.cs0, "add", self, other)
+      return ve_new
 
+  def __radd__(self, other):
+    return self.__add__(other)
+
+  def __str__(self):
+    ret = self.name + "=[" + str(self.p1) + " - " + str(self.p2) + "]"
+    return ret
+
+
+class coord_sys(pycado_obj):
+  """
+  def __init__(self, cs, *args):
+    pycado_obj.__init__(self, cs, *args)
+    #self.args = self.args[0]
+    self.trsf = None
+    self.data = gp_Ax3(gp().XOY())
+    self.p0 = point(None, 0, 0, 0)
+    self.p0.build()
+    p1 = point(None, 1, 0, 0)
+    p1.build()
+    p2 = point(None, 0, 1, 0)
+    p2.build()
+    p3 = point(None, 0, 0, 1)
+    p3.build()
+    self.vx = vector(None, self.p0, p1)
+    self.vx.build()
+    self.vy = vector(None, self.p0, p2)
+    self.vy.build()
+    self.vz = vector(None, self.p0, p3)
+    self.vz.build()
+    #self.update(self.data)
+  """ 
+   
+  #def create(self, gp_ax3):
+  def __init__(self, cs, *args):
+    pycado_obj.__init__(self, cs, *args)
+    self.data = gp_Ax3(gp().XOY())  
+    self.p0 = point(None, "intern", self.data.Location())
+    self.vx = vector(None, "intern", self.p0.data, gp_Vec(self.data.XDirection()))
+    self.vy = vector(None, "intern", self.p0.data, gp_Vec(self.data.YDirection()))
+    self.vz = vector(None, "intern", self.p0.data, gp_Vec(self.data.Direction()))
+    self.trsf = None
+    
+  def build(self):
+    self.update_name()
+    args = self.args
+
+    if self.cs0 != None:
+      self.data = gp_Ax3(self.cs0.data.Ax2())
+    
+    self._display = False
+    self.trsf = gp_Trsf()
+     
+    # TODO: REMOVE?   
+    if isinstance(args[0], point):
+      self.p0 = args[0]
+      self.vx = args[1]
+      self.vy = args[2]
+      self.vz = args[3] 
+    elif args[0] == "translate":
+      v_trans = args[1].data
+      self.data.Translate(v_trans)
+      self.update(self.data)
+      
+    elif args[0] == "rotate":
+      v_rot = args[1]
+      angle = args[2]
+      self.data.Rotate(gp_Ax1(v_rot.p1.data, gp_Dir(v_rot.data)), angle)
+      self.update(self.data)
+    
+  def update(self, gp_ax3):
+    self.data = gp_ax3
+    self.p0.update(gp_ax3.Location())
+    self.vx.update(self.p0.data, gp_Vec(gp_ax3.XDirection()))
+    self.vy.update(self.p0.data, gp_Vec(gp_ax3.YDirection()))
+    self.vz.update(self.p0.data, gp_Vec(gp_ax3.Direction()))    
+    self.trsf.SetTransformation(self.data, gp_Ax3(gp().XOY()))
+    
+    
+  def __str__(self):
+    ret = self.name + "{" 
+    ret += str(self.p0) + ", " + str(self.vx) + ", " + str(self.vy)
+    ret += ", " + str(self.vz) + "}"
+    return ret
+                    
 class surface(pycado_obj):
   def build(self):
     self.update_name()
@@ -180,3 +300,5 @@ class group(pycado_obj):
 
 CUT = "cut"
 EXTRUSION = "extrusion"
+TRANSLATE = "translate"
+ROTATE = "rotate"

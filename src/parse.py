@@ -71,7 +71,8 @@ class pre_compiler(ast.NodeTransformer):
       else :
         new_body.append(n)
     
-    # add initialisations to main    
+    # add initialisations to main
+    """    
     l_init = "p0 = point(None, 0, 0, 0)"
     l_init += "\n__p1 = point(None, 1, 0, 0)"
     l_init += "\n__p2 = point(None, 0, 1, 0)"
@@ -81,7 +82,10 @@ class pre_compiler(ast.NodeTransformer):
     l_init  += "\nvy = vector(None, p0, __p2)"
     l_init  += "\nvz = vector(None, p0, __p3)"
     l_init  += "\ncs0 = coord_sys(None, p0, vx, vy, vz)"
-        
+    """
+    l_init  = "cs0 = coord_sys(None, None)"
+    l_init += "\np0 = cs0.p0\nvx = cs0.vx\nvy = cs0.vy\nvz = cs0.vz"
+    
     main.body = ast.parse(l_init).body + main.body 
     #new_body = ast.parse(l_init).body + new_body 
     # add main locals to g_obj 
@@ -102,10 +106,15 @@ class pre_compiler(ast.NodeTransformer):
         # add first arg cs0 in PRIMITIVES call
         node.args = [ast.Name("cs0", ast.Load())] + node.args    
 
+#  def visit_Name(self, node):
+
 
 # add lineno and col_offset to nodes
 #TODO: apply function only on created nodes
 class fix_tree(ast.NodeTransformer):
+#  def __init__(self):
+#    self.ALIASES = ["p0", "vx", "vy", "vz"]
+
   def generic_visit(self, node):
     if not hasattr(node, 'lineno'):
       node.lineno = 0
@@ -115,6 +124,11 @@ class fix_tree(ast.NodeTransformer):
       node.col_offset = 0
     else:
       col_offset = node.col_offset  
+    
+#    if isinstance(node, ast.Name):
+#      if node.id in self.ALIASES:
+#        node.id = "cs0." + node.id 
+           
     ast.NodeVisitor.generic_visit(self, node)
     
     
@@ -140,7 +154,6 @@ def display_file(a_filename):
     # - add cs0 in primitives calling
     # - make a function grouping lonely instructions
         
-    print l_src
     
     l_ast = ast.parse(l_src, a_filename)
     
@@ -162,11 +175,11 @@ def display_file(a_filename):
     pycado_main()
     print("\n# PYCADO_OBJ LIST")
     
-    for o in glob.get_objs():
+    for o in glob.get_objs():    
       o.build()
       o.display()
-      print o.name, o    
-
+      print o.name, o
+      
   except:
     print sys.exc_info()
     glob.log(traceback.format_exc())

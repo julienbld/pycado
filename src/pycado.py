@@ -181,8 +181,10 @@ class PycadoGui(QtGui.QMainWindow):
     editor.setEolMode(QsciScintilla.EolUnix)
     return editor
   
-  def open_file(self):
-    filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
+  def open_file(self, filename=None):
+    if filename==None :
+      filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
+      
     fname = open(filename)
     data = fname.read()
     self.editor.setText(data) 
@@ -217,7 +219,7 @@ def get_abs_filename():
   else:
       return bg_abs_filename
 
-def main():
+def main(argv=sys.argv):
   # CONFIG
   glob.config = yaml.load(file('resources/config-en.yaml', 'r'))
         
@@ -226,6 +228,7 @@ def main():
   gui = PycadoGui()
   gui.showMaximized()
 
+    
   # GLOBAL GUI VARS
   #TODO: improve tab gestion
   glob.displays.append(gui.canva._display)
@@ -233,6 +236,9 @@ def main():
   glob.objs.append([])
   glob.file_names.append("")
 
+  if(len(argv)>1):
+    gui.open_file(argv[1])
+    
   # EXEC
   app.exec_()
   

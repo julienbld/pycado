@@ -21,8 +21,11 @@ group sqr_pipe(cs0, side, thick, length):
   rec_1 = rectangle(cs0, side, side)
   
   # create 2nd sqare in a new coordinate system
-  p0_sqr2 = point(thick, thick, 0)
-  cs_sqr2 = coord_sys(p0_sqr2, vx, vy, vz)  
+  #p0_sqr2 = point(thick, thick, 0)
+  #cs_sqr2 = coord_sys(p0_sqr2, vx, vy, vz)  
+  cs_sqr2 = coord_sys(cs0, TRANSLATE, 
+				vx*thick + vy*thick)
+ 
   rec_2 = rectangle(cs_sqr2, side - 2*thick, side - 2*thick)
   
   # cut sqare 1 by square 2
@@ -31,7 +34,7 @@ group sqr_pipe(cs0, side, thick, length):
   rec_2.res.hide()
   
   # extrude section 
-  res = solid(EXTRUSION, res, vz*length)
+  res = solid(EXTRUSION, res, cs0.vz*length)
 
 pipe_wid = 20
 pipe_len = 200
@@ -39,10 +42,14 @@ pipe_thi = 1.25
 
 pipe1 = sqr_pipe(cs0, pipe_wid, pipe_thi, pipe_len)
 
-p0_pipe2 = point(50, 20, 30)
-cs_pipe2 = coord_sys(p0_pipe2, vx, vy, vz)
+#p0_pipe2 = point(50, 20, 30)
+#cs_pipe2 = coord_sys(p0_pipe2, vx, vy, vz)
+#cs_pipe2 = coord_sys(cs0, TRANSLATE, 50*vy)
+cs_pipe2 = coord_sys(cs0, TRANSLATE, -20*vx + 40*vy +40*vz)
+cs_pipe2 = coord_sys(cs_pipe2, ROTATE, cs_pipe2.vx, -3.14/2)
 pipe2 = sqr_pipe(cs_pipe2, pipe_wid*1.5, pipe_thi, pipe_len/2)
 
-p0_pipe3 = point(-50, -50, -50)
-cs_pipe3 = coord_sys(p0_pipe3, vx, vy, vz)
+#p0_pipe3 = point(-50, -50, -50)
+#cs_pipe3 = coord_sys(p0_pipe3, vz, vy, -1 * vx)
+cs_pipe3 = coord_sys(cs0, TRANSLATE, 50*vx + 50*vy)
 pipe3 = sqr_pipe(cs_pipe3, pipe_wid*2, pipe_thi, pipe_len/3)

@@ -1,11 +1,12 @@
 side = 5
 width = .2
 
+a = p0
 b = point(side, 0, 0)
 c = point(b, 0, side, 0)
 d = point(c, -side, 0 , 0)
 
-ab = line(p0, b)
+ab = line(a, b)
 bc = line(b, c)
 cd = line(c, d)
 da = line(d, p0)
