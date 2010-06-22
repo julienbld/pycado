@@ -14,6 +14,7 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerPython
 from qt_display import qtViewer3d
 import yaml
+import cProfile
 
 import glob
 
@@ -66,14 +67,13 @@ class PycadoGui(QtGui.QMainWindow):
    
     # SIZE
     screen = QtGui.QDesktopWidget().screenGeometry()
-    self.setGeometry(0, 20, screen.width()-50, screen.height()-150) 
-   
+    self.setGeometry(0, 20, screen.width()-50, screen.height()-150)     
+
     # INIT DISPLAY   
-    self.canva.InitDriver()
-    self.canva._display.SetBackgroundImage(get_abs_filename())
-    self.canva._display.View_Iso()
-    self.canva._display.FitAll()
-    
+    #self.canva.InitDriver()
+    #self.canva._display.SetBackgroundImage(get_abs_filename())
+    #self.canva._display.View_Iso()
+    ##self.canva._display.FitAll()
     
 
   def initMenuBar(self):
@@ -192,6 +192,7 @@ class PycadoGui(QtGui.QMainWindow):
     glob.set_file_name(str(filename)) 
     glob.remove_all_objs()
     self.canva._display.EraseAll()
+    #cProfile.run('display_file("' + str(filename) + '")')
     display_file(str(filename))
     
   def save(self):
@@ -228,9 +229,15 @@ def main(argv=sys.argv):
   gui = PycadoGui()
   gui.showMaximized()
 
+  # INIT DISPLAY   
+  gui.canva.InitDriver()
+  gui.canva._display.SetBackgroundImage(get_abs_filename())
+  gui.canva._display.View_Iso()
+
     
   # GLOBAL GUI VARS
   #TODO: improve tab gestion
+
   glob.displays.append(gui.canva._display)
   glob.consoles.append(gui.console)
   glob.objs.append([])

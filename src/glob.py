@@ -11,8 +11,11 @@ def log(msg):
   consoles[curr_tab].append(str(msg))
   
 def display(topo):
-  displays[curr_tab].DisplayShape(topo)
+  displays[curr_tab].DisplayShape(topo, update=False)
 
+def fitAll():
+  displays[curr_tab].FitAll()
+  
 def add_obj(data):
   objs[curr_tab].append(data)
 

@@ -179,7 +179,9 @@ def display_file(a_filename):
     for o in glob.get_objs():    
       o.build()
       o.display()
-      print o.name, o
+      #print o.name, o
+    
+    glob.fitAll()
       
   except:
     print sys.exc_info()

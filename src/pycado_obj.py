@@ -113,7 +113,6 @@ class circle(pycado_obj):
   def build(self):
     self.update_name()
     args = self.args
-    print args
     p = args[0]
     v_norm = args[1]
     r = args[2]
