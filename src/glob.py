@@ -1,4 +1,5 @@
 # used to read/write cross-module variables 
+import OCC.Quantity
 
 curr_tab = 0
 objs = []
@@ -11,8 +12,11 @@ def log(msg):
   consoles[curr_tab].append(str(msg))
   
 def display(topo):
-  displays[curr_tab].DisplayShape(topo, update=False)
-
+  #http://www.opencascade.org/org/forum/thread_18374/
+  #http://adl.serveftp.org/lab/opencascade/pdf/visu.pdf
+  shape = displays[curr_tab].DisplayShape(topo, update=False).GetObject()
+  #shape.SetDisplayMode(0)
+  #displays[curr_tab].DisplayColoredShape(topo, 'BLUE', False)
 def fitAll():
   displays[curr_tab].FitAll()
   
