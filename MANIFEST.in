@@ -1,0 +1,5 @@
+recursive-include pycado/data/images/ *.png
+include pycado/data/config-en.yaml
+include pycado/examples/*.txt
+include setup.py
+include pycado/*.py
