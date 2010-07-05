@@ -11,6 +11,7 @@ setup(name = 'pycado',
       maintainer = 'Charles Clément',
       url = 'http://github.com/julienbld/pycado',
       packages = ['pycado'],
+      scripts = ['pycado/pycado'],
       package_dir = {'pycado': 'pycado'},
-      package_data={'pycado': ['data/config-en.yaml', 'data/images/*.png', 'examples/*.txt']},
+      package_data = {'pycado': ['data/config-en.yaml', 'data/images/*.png', 'examples/*.txt']},
      )
