@@ -18,6 +18,7 @@ import cProfile
 #import OCC
 #from OCC import Materials
 import glob
+import os
 
 from parse import *
   
@@ -223,7 +224,8 @@ def get_abs_filename():
 
 def main(argv=sys.argv):
   # CONFIG
-  glob.config = yaml.load(file('resources/config-en.yaml', 'r'))
+  data_path = os.path.join(os.path.dirname(__file__),'data')
+  glob.config = yaml.load(file(os.path.join(data_path, 'config-en.yaml'), 'r'))
         
   # GUI
   app = QtGui.QApplication([])
@@ -232,7 +234,7 @@ def main(argv=sys.argv):
 
   # INIT DISPLAY   
   gui.canva.InitDriver()
-  gui.canva._display.SetBackgroundImage(glob.config["background"])
+  #gui.canva._display.SetBackgroundImage(glob.config["background"])
   #gui.canva._display.GetViewer().GetObject().SetDefaultBackgroundColor(OCC.Quantity.Quantity_NOC_YELLOW)
   gui.canva._display.View_Iso()
 

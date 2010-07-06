@@ -1,6 +1,6 @@
 title: Pycado v0.00001
-icon: resources/pycado.png
-background: resources/default_background.bmp 
+icon: data/images/pycado.png
+background: data/images/default_background.bmp 
 
 menus:
   file:
@@ -8,30 +8,30 @@ menus:
     # items
     new-file:
       name: New File
-      icon: resources/document-new.png
+      icon: data/images/document-new.png
       shortcut: Ctrl+N
       tip: Create a new file
       
     open-file:
       name: Open
-      icon: resources/document-open.png
+      icon: data/images/document-open.png
       shortcut: Ctrl+O
       tip: Open a file
       
     save:
       name: Save
-      icon: resources/document-save.png
+      icon: data/images/document-save.png
       shortcut: Ctrl+S
       tip: Save current file
       
     save-as:  
       name: Save As
-      icon: resources/document-save-as.png
+      icon: data/images/document-save-as.png
       shortcut: F12
       tip: Save current file as...
       
     quit:
       name: Quit
-      icon: resources/system-log-out.png
+      icon: data/images/system-log-out.png
       shortcut: Ctrl+Q
       tip: Quit Pycado
