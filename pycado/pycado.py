@@ -15,7 +15,7 @@ from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerPython
 from qt_display import qtViewer3d
 import yaml
 import cProfile
-#import OCC
+import OCC
 #from OCC import Materials
 import glob
 import os
@@ -211,7 +211,6 @@ class PycadoGui(QtGui.QMainWindow):
 def get_abs_filename():
   import sys
   import os, os.path
-  #from OCC import *
 
   ''' Returns the absolute file name for the file default_background.bmp
   '''
@@ -226,7 +225,7 @@ def main(argv=sys.argv):
   # CONFIG
   data_path = os.path.join(os.path.dirname(__file__),'data')
   glob.config = yaml.load(file(os.path.join(data_path, 'config-en.yaml'), 'r'))
-        
+
   # GUI
   app = QtGui.QApplication([])
   gui = PycadoGui()
@@ -235,6 +234,7 @@ def main(argv=sys.argv):
   # INIT DISPLAY   
   gui.canva.InitDriver()
   #gui.canva._display.SetBackgroundImage(glob.config["background"])
+  gui.canva._display.SetBackgroundImage(get_abs_filename())
   #gui.canva._display.GetViewer().GetObject().SetDefaultBackgroundColor(OCC.Quantity.Quantity_NOC_YELLOW)
   gui.canva._display.View_Iso()
 
