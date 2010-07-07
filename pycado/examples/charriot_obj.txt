@@ -1,4 +1,4 @@
-# define ob_rec which is a 2D rectangle
+# define rectangle which is a 2D rectangle
 group rectangle(cs0, width, height):
   # create 4 points
   a = point(0, 0, 0)
@@ -15,7 +15,7 @@ group rectangle(cs0, width, height):
   # create surface bounded by lines
   res = surface(ab, bc, cd, da)
   
-# define ob_pipe which is a pipe with a square basis
+# define sqr_pipe which is a pipe with a square basis
 group sqr_pipe(cs0, side, thick, length):
   # create 1st square
   rec_1 = rectangle(cs0, side, side)

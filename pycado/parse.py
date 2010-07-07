@@ -18,7 +18,7 @@ from math import *
 #  + add some instructions
  
 class pre_compiler(ast.NodeTransformer):
-  def __init__(self):
+  def __init__(self, fname):
     self.PRIMITIVES = ["point", "line", "coord_sys", "vector", 
                         "surface", "solid", "nurb", "circle"]
     
@@ -26,6 +26,7 @@ class pre_compiler(ast.NodeTransformer):
     l_str += "\np0 = cs0.p0\nvx = cs0.vx\nvy = cs0.vy\nvz = cs0.vz"
     self.str_init_group = l_str
     self.parse_end_group = ast.parse("self.local_var_to_members(locals())")
+    self.file_name = fname
 
   def generic_visit(self, node):
     ast.NodeVisitor.generic_visit(self, node)
@@ -106,6 +107,9 @@ class pre_compiler(ast.NodeTransformer):
       if node.func.id in self.PRIMITIVES:
         # add first arg cs0 in PRIMITIVES call
         node.args = [ast.Name("cs0", ast.Load())] + node.args    
+      if node.func.id == "include":
+        # add last arg caller file name 
+        node.args = node.args + [ast.Str(self.file_name)]     
 
 #  def visit_Name(self, node):
 
@@ -132,8 +136,13 @@ class fix_tree(ast.NodeTransformer):
            
     ast.NodeVisitor.generic_visit(self, node)
     
-    
-def display_file(a_filename):
+def include(fname, calling_fname):
+  # find file
+  # first in same dir than calling file
+  
+  display_file(fname, False)
+      
+def display_file(a_filename, is_main=True):
   try:               
     # READ FILE                                  
     l_f = file(a_filename, 'r')
@@ -157,10 +166,10 @@ def display_file(a_filename):
         
     
     l_ast = ast.parse(l_src, a_filename)
-    
-    l_pre_compiler = pre_compiler()
-    l_pre_compiler.visit(l_ast)
     #print dump(l_ast)
+    l_pre_compiler = pre_compiler(a_filename)
+    l_pre_compiler.visit(l_ast)
+    
     
     fixer = fix_tree()
     fixer.visit(l_ast)
@@ -172,16 +181,16 @@ def display_file(a_filename):
     
     exec compile(l_ast, a_filename, 'exec') in globals()
     
-  
-    pycado_main()
-    print("\n# PYCADO_OBJ LIST")
-    
-    for o in glob.get_objs():    
-      o.build()
-      o.display()
-      #print o.name, o
-    
-    glob.fitAll()
+    if is_main:
+      pycado_main()
+      print("\n# PYCADO_OBJ LIST")
+      
+      for o in glob.get_objs():    
+        o.build()
+        o.display()
+        #print o.name, o
+      
+      glob.fitAll()
       
   except:
     print sys.exc_info()
