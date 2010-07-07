@@ -65,7 +65,7 @@ class PycadoGui(QtGui.QMainWindow):
     
     # TITLE
     self.setWindowTitle(nspace.config['title'])
-    self.setWindowIcon(QtGui.QIcon(nspace.config['icon'])) 
+    self.setWindowIcon(QtGui.QIcon(os.path.join(get_exec_dir(), nspace.config['icon']))) 
    
     # SIZE
     screen = QtGui.QDesktopWidget().screenGeometry()
@@ -112,7 +112,7 @@ class PycadoGui(QtGui.QMainWindow):
 
   
   def action_menu(self, line_desc):
-    action = QtGui.QAction(QtGui.QIcon(line_desc['icon']), line_desc['name'], self)
+    action = QtGui.QAction(QtGui.QIcon(os.path.join(get_exec_dir(), line_desc['icon'])), line_desc['name'], self)
     action.setShortcut(line_desc['shortcut'])
     action.setStatusTip(line_desc['tip'])
     return action
@@ -206,6 +206,8 @@ class PycadoGui(QtGui.QMainWindow):
     self.canva._display.EraseAll()
     display_file(filename)
     
+def get_exec_dir():
+    return os.path.abspath(os.path.dirname(__file__))
     
 #TODO: CHANGE!!!
 def get_abs_filename():
@@ -215,11 +217,11 @@ def get_abs_filename():
   ''' Returns the absolute file name for the file default_background.bmp
   '''
   occ_package = sys.modules['OCC']
-  bg_abs_filename = os.path.join(occ_package.__path__[0],'Display','default_background.bmp')
-  if not os.path.isfile(bg_abs_filename):
-      raise NameError('Not image background file found.')
+  background_file = os.path.join(occ_package.__path__[0],'Display','default_background.bmp')
+  if not os.path.isfile(background_file):
+      raise NameError('Background image file not found!')
   else:
-      return bg_abs_filename
+      return background_file
 
 def main(argv=sys.argv):
   # CONFIG
