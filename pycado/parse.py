@@ -136,12 +136,12 @@ class fix_tree(ast.NodeTransformer):
 #        node.id = "cs0." + node.id 
            
     ast.NodeVisitor.generic_visit(self, node)
-    
+
 def include(fname, calling_fname):
   # find file
   # first in same dir than calling file
+  # TODO: Bug when include change (last one still in memory)
   fpath = os.path.join(os.path.dirname(calling_fname), fname)
-  print fpath 
   display_file(fpath, False)
       
 def display_file(a_filename, is_main=True):
