@@ -1,6 +1,7 @@
 import ast
 import sys
 import traceback
+import os
 
 from pycado_obj import *
 
@@ -139,8 +140,9 @@ class fix_tree(ast.NodeTransformer):
 def include(fname, calling_fname):
   # find file
   # first in same dir than calling file
-  
-  display_file(fname, False)
+  fpath = os.path.join(os.path.dirname(calling_fname), fname)
+  print fpath 
+  display_file(fpath, False)
       
 def display_file(a_filename, is_main=True):
   try:               
