@@ -9,7 +9,7 @@ from pycado_obj import *
 from ast import *
 import codegen
 
-import glob
+import nspace
 from math import *
 
 # PRE COMPILER
@@ -185,14 +185,14 @@ def display_file(a_filename, is_main=True):
       pycado_main()
       print("\n# PYCADO_OBJ LIST")
       
-      for o in glob.get_objs():    
+      for o in nspace.get_objs():
         o.build()
         o.display()
         #print o.name, o
       
-      glob.fitAll()
+      nspace.fitAll()
       
   except:
     print sys.exc_info()
-    glob.log(traceback.format_exc())
+    nspace.log(traceback.format_exc())
   

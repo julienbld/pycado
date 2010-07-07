@@ -8,7 +8,7 @@ from OCC.TopAbs import *
 
 from OCC.TopoDS import *
 
-import glob
+import nspace
 import inspect
 import numbers
 
@@ -31,7 +31,7 @@ class pycado_obj():
     if len(args)>0 and args[0] == "intern":
       self.create(*args[1:])
     else: 
-      glob.add_obj(self)
+      nspace.add_obj(self)
   
   def update_name(self):
     if self.parent != None:
@@ -39,7 +39,7 @@ class pycado_obj():
       
   def display(self):
     if self._display == True and self.name.find("anonym")==-1:
-      glob.display(self.topology)
+      nspace.display(self.topology)
       #canva.DisplayShape()
     
   def local_var_to_members(self, local_vars):

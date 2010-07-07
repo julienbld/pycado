@@ -17,7 +17,7 @@ import yaml
 import cProfile
 import OCC
 #from OCC import Materials
-import glob
+import nspace
 import os
 
 from parse import *
@@ -64,8 +64,8 @@ class PycadoGui(QtGui.QMainWindow):
     self.setCentralWidget(center)
     
     # TITLE
-    self.setWindowTitle(glob.config['title'])
-    self.setWindowIcon(QtGui.QIcon(glob.config['icon'])) 
+    self.setWindowTitle(nspace.config['title'])
+    self.setWindowIcon(QtGui.QIcon(nspace.config['icon'])) 
    
     # SIZE
     screen = QtGui.QDesktopWidget().screenGeometry()
@@ -82,7 +82,7 @@ class PycadoGui(QtGui.QMainWindow):
     menubar = self.menuBar()
     
     # F I L E
-    menu_desc = glob.config['menus']['file']
+    menu_desc = nspace.config['menus']['file']
     menu = menubar.addMenu(menu_desc['name'])
     
     # New File
@@ -191,18 +191,18 @@ class PycadoGui(QtGui.QMainWindow):
     data = fname.read()
     self.editor.setText(data) 
     
-    glob.set_file_name(str(filename)) 
-    glob.remove_all_objs()
+    nspace.set_file_name(str(filename)) 
+    nspace.remove_all_objs()
     self.canva._display.EraseAll()
     #cProfile.run('display_file("' + str(filename) + '")')
     display_file(str(filename))
     
   def save(self):
-    filename = glob.get_file_name()
+    filename = nspace.get_file_name()
     f = file(filename, 'w')
     f.write(self.editor.text())
     f.close()
-    glob.remove_all_objs()
+    nspace.remove_all_objs()
     self.canva._display.EraseAll()
     display_file(filename)
     
@@ -224,7 +224,7 @@ def get_abs_filename():
 def main(argv=sys.argv):
   # CONFIG
   data_path = os.path.join(os.path.dirname(__file__),'data')
-  glob.config = yaml.load(file(os.path.join(data_path, 'config-en.yaml'), 'r'))
+  nspace.config = yaml.load(file(os.path.join(data_path, 'config-en.yaml'), 'r'))
 
   # GUI
   app = QtGui.QApplication([])
@@ -233,7 +233,7 @@ def main(argv=sys.argv):
 
   # INIT DISPLAY   
   gui.canva.InitDriver()
-  #gui.canva._display.SetBackgroundImage(glob.config["background"])
+  #gui.canva._display.SetBackgroundImage(nspace.config["background"])
   gui.canva._display.SetBackgroundImage(get_abs_filename())
   #gui.canva._display.GetViewer().GetObject().SetDefaultBackgroundColor(OCC.Quantity.Quantity_NOC_YELLOW)
   gui.canva._display.View_Iso()
@@ -242,10 +242,10 @@ def main(argv=sys.argv):
   # GLOBAL GUI VARS
   #TODO: improve tab gestion
 
-  glob.displays.append(gui.canva._display)
-  glob.consoles.append(gui.console)
-  glob.objs.append([])
-  glob.file_names.append("")
+  nspace.displays.append(gui.canva._display)
+  nspace.consoles.append(gui.console)
+  nspace.objs.append([])
+  nspace.file_names.append("")
 
   if(len(argv)>1):
     gui.open_file(argv[1])

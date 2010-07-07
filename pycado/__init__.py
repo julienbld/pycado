@@ -1,2 +1,2 @@
-all__ = [ 'ast', 'codegen', 'glob', 'parse', 'pycado_obj', 'pycado',
+all__ = [ 'ast', 'codegen', 'nspace', 'parse', 'pycado_obj', 'pycado',
 'qt_display']
