@@ -33,4 +33,4 @@ def set_file_name(name):
   file_names[curr_tab] = name
   
 def get_file_name():
-  return file_names[curr_tab]     
+  return file_names[curr_tab]

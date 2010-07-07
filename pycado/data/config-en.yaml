@@ -1,6 +1,6 @@
 title: Pycado v0.00001
 icon: data/images/pycado.png
-background: data/images/default_background.bmp 
+background: data/images/default_background.png
 
 menus:
   file:
