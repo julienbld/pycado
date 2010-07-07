@@ -145,6 +145,7 @@ def include(fname, calling_fname):
   display_file(fpath, False)
       
 def display_file(a_filename, is_main=True):
+    
   try:               
     # READ FILE                                  
     l_f = file(a_filename, 'r')
@@ -191,7 +192,9 @@ def display_file(a_filename, is_main=True):
         o.build()
         o.display()
         #print o.name, o
-      
+    
+      nspace.display_edges()
+          
       nspace.fitAll()
       
   except:

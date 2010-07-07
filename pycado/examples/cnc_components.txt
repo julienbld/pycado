@@ -69,6 +69,7 @@ group nut(cs0, side_len, int_diam, thi):
   # intersection
   section  = surface(CUT, hexa.res, su_c1)
   hexa.hide()
+  c1.hide()
   su_c1.hide()
 
   res = solid(EXTRUSION, section, vz*thi)
@@ -79,6 +80,7 @@ group rod(cs0, diam, len):
   sc1  = surface(c1) 
   # TODO: DEBUG!!!
   #sc1  = surface(circle(p0, vz, diam/2))
+  c1.hide()
   sc1.hide()
   res = solid(EXTRUSION, sc1, vz*len)
 
@@ -90,6 +92,8 @@ group roll(cs0, int_diam, ext_diam, height):
   sc2  = surface(c2)
   # intersection
   section  = surface(CUT, sc1, sc2)
+  c1.hide()
+  c2.hide()
   sc1.hide()
   sc2.hide()
   res = solid(EXTRUSION, section, vz*height)
@@ -97,7 +101,7 @@ group roll(cs0, int_diam, ext_diam, height):
 
 # instanciated obj
 group washer_8(cs0):
-  r = roll(cs0, 8, 11, 3)
+  r = roll(cs0, 8, 14, 3)
   res = r.res
   
 group roll_20(cs0):
