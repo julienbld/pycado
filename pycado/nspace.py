@@ -23,15 +23,18 @@ def display(topo):
   mat = Graphic3d_MaterialAspect(Graphic3d_NOM_SILVER)
   displays[curr_tab].DisplayShape(topo, material=mat, update=False)
   ex = TopExp.TopExp_Explorer(topo, TopAbs.TopAbs_EDGE)
+  
   while ex.More():
     edges.append(TopoDS.TopoDS().Edge(ex.Current()))
-    displays[curr_tab].DisplayColoredShape(ex.Current(), 'BLACK', False)
+    displays[curr_tab].DisplayColoredShape(TopoDS.TopoDS().Edge(ex.Current()), 'BLACK', False)
     ex.Next()
 
 def display_edges():
-  for e in edges:
-    print e
+  #for e in edges:
+    #print e
     #displays[curr_tab].DisplayColoredShape(e, 'BLACK', False)
+  
+  print len(edges)
     
 def fitAll():
   displays[curr_tab].FitAll()
