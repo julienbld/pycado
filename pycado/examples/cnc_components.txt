@@ -166,59 +166,65 @@ group vars(cs0):
   
   
   
+group charriot(cs0, g_vars):
+	# pipes
+	pipe_1 = sqr_pipe(cs0, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+	#TODO: ADD sub operation
+	vt = vx*(g_vars.cha_wid -g_vars.pipe_wid)
+	cs = coord_sys(TRANSLATE, vt)
+	pipe_2 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+	vt += vy*(g_vars.cha_wid -g_vars.pipe_wid)
+	cs = coord_sys(TRANSLATE, vt)
+	pipe_3 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+	vt = vy*(g_vars.cha_wid -g_vars.pipe_wid)
+	cs = coord_sys(TRANSLATE, vt)
+	pipe_4 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
+
+
+
+	# 8 rods
+	# first side
+	cs_y = coord_sys(cs0, ROTATE, vx, -pi/2)
+	cs_rm1 = coord_sys(cs_y, TRANSLATE, vx*(g_vars.pipe_wid/2))
+	cs_rm1_1 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_1)
+	rm_1_1 = rod_mount(cs_rm1_1, g_vars)
+
+	cs_rm1_2 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_2)
+	rm_1_2 = rod_mount(cs_rm1_2, g_vars)
+
+	cs_rm2 = coord_sys(cs_rm1, TRANSLATE, 
+			vx*(g_vars.cha_wid - g_vars.pipe_wid))
+	cs_rm2_1 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_1)
+	rm_2_1 = rod_mount(cs_rm2_1, g_vars)
+
+	cs_rm2_2 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_2)
+	rm_2_2 = rod_mount(cs_rm2_2, g_vars)
+
+	# second side
+	cs_x = coord_sys(cs0, ROTATE, vy, pi/2)
+	cs_rm3 = coord_sys(cs_x, TRANSLATE, vy*(g_vars.pipe_wid/2))
+	cs_rm3_1 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_1)
+	rm_3_1 = rod_mount(cs_rm3_1, g_vars)
+
+	cs_rm3_2 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_2)
+	rm_3_2 = rod_mount(cs_rm3_2, g_vars)
+
+	cs_rm4= coord_sys(cs_rm3, TRANSLATE, 
+		vy*(g_vars.cha_wid - g_vars.pipe_wid))
+	cs_rm4_1 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_1)
+	rm_4_1 = rod_mount(cs_rm4_1, g_vars)
+
+	cs_rm4_2 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_2)
+	rm_4_2 = rod_mount(cs_rm4_2, g_vars)
+
 ####### MAIN  
 # variables
 g_vars = vars(cs0)
+ch1 = charriot(cs0, g_vars)
 
-# pipes
-pipe_1 = sqr_pipe(cs0, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
-
-#TODO: ADD sub operation
-vt = vx*(g_vars.cha_wid -g_vars.pipe_wid)
-cs = coord_sys(TRANSLATE, vt)
-pipe_2 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
-
-vt += vy*(g_vars.cha_wid -g_vars.pipe_wid)
-cs = coord_sys(TRANSLATE, vt)
-pipe_3 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
-
-vt = vy*(g_vars.cha_wid -g_vars.pipe_wid)
-cs = coord_sys(TRANSLATE, vt)
-pipe_4 = sqr_pipe(cs, g_vars.pipe_wid, g_vars.pipe_thi, g_vars.pipe_len)
-
-
-
-# 8 rods
-# first side
-cs_y = coord_sys(cs0, ROTATE, vx, -pi/2)
-cs_rm1 = coord_sys(cs_y, TRANSLATE, vx*(g_vars.pipe_wid/2))
-cs_rm1_1 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_1)
-rm_1_1 = rod_mount(cs_rm1_1, g_vars)
-
-cs_rm1_2 = coord_sys(cs_rm1, TRANSLATE, vz*g_vars.rod_1_2)
-rm_1_2 = rod_mount(cs_rm1_2, g_vars)
-
-cs_rm2 = coord_sys(cs_rm1, TRANSLATE, 
-		vx*(g_vars.cha_wid - g_vars.pipe_wid))
-cs_rm2_1 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_1)
-rm_2_1 = rod_mount(cs_rm2_1, g_vars)
-
-cs_rm2_2 = coord_sys(cs_rm2, TRANSLATE, vz*g_vars.rod_1_2)
-rm_2_2 = rod_mount(cs_rm2_2, g_vars)
-
-# second side
-cs_x = coord_sys(cs0, ROTATE, vy, pi/2)
-cs_rm3 = coord_sys(cs_x, TRANSLATE, vy*(g_vars.pipe_wid/2))
-cs_rm3_1 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_1)
-rm_3_1 = rod_mount(cs_rm3_1, g_vars)
-
-cs_rm3_2 = coord_sys(cs_rm3, TRANSLATE, vz*g_vars.rod_2_2)
-rm_3_2 = rod_mount(cs_rm3_2, g_vars)
-
-cs_rm4= coord_sys(cs_rm3, TRANSLATE, 
-	vy*(g_vars.cha_wid - g_vars.pipe_wid))
-cs_rm4_1 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_1)
-rm_4_1 = rod_mount(cs_rm4_1, g_vars)
-
-cs_rm4_2 = coord_sys(cs_rm4, TRANSLATE, vz*g_vars.rod_2_2)
-rm_4_2 = rod_mount(cs_rm4_2, g_vars)
+cs2= coord_sys(TRANSLATE, -200 * vy)
+cs2= coord_sys(cs2, ROTATE, vx, pi/2)
+#ch2 = charriot(cs2, g_vars)

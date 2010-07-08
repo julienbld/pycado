@@ -1,7 +1,10 @@
 # used to read/write cross-module variables 
 import OCC.Quantity
 from OCC.Graphic3d import *
-from OCC import TopExp, BRepPrimAPI, TopAbs, TopoDS
+from OCC import TopExp, BRepPrimAPI, TopAbs, TopoDS, BRep
+from OCC.Utils.Topology import Topo
+from OCC.BRepAlgo import *
+from OCC.TopoDS import TopoDS_Compound
 
 curr_tab = 0
 objs = []
@@ -22,19 +25,24 @@ def display(topo):
   #displays[curr_tab].DisplayColoredShape(topo, 'BLUE', False)
   mat = Graphic3d_MaterialAspect(Graphic3d_NOM_SILVER)
   displays[curr_tab].DisplayShape(topo, material=mat, update=False)
-  ex = TopExp.TopExp_Explorer(topo, TopAbs.TopAbs_EDGE)
   
-  while ex.More():
-    edges.append(TopoDS.TopoDS().Edge(ex.Current()))
-    displays[curr_tab].DisplayColoredShape(TopoDS.TopoDS().Edge(ex.Current()), 'BLACK', False)
-    ex.Next()
-
-def display_edges():
-  #for e in edges:
-    #print e
-    #displays[curr_tab].DisplayColoredShape(e, 'BLACK', False)
+  t = Topo(topo)
+  wires =t.wires()
+  for w in wires:
+    #print w
+    #displays[curr_tab].DisplayColoredShape(w, 'BLACK', False)
+    edges.append(w) 
   
-  print len(edges)
+def display_edges():  
+  comp = TopoDS_Compound()
+  builder = BRep.BRep_Builder()
+  builder.MakeCompound(comp)
+  
+  for e in edges:
+    #contour = BRepAlgo_Fuse(contour, e).Shape()
+    builder.Add(comp, e)
+    
+  displays[curr_tab].DisplayColoredShape(comp, 'BLACK', False)
     
 def fitAll():
   displays[curr_tab].FitAll()
