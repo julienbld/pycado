@@ -225,6 +225,3 @@ group charriot(cs0, g_vars):
 g_vars = vars(cs0)
 ch1 = charriot(cs0, g_vars)
 
-cs2= coord_sys(TRANSLATE, -200 * vy)
-cs2= coord_sys(cs2, ROTATE, vx, pi/2)
-#ch2 = charriot(cs2, g_vars)

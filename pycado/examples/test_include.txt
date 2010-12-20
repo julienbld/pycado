@@ -1,3 +1,3 @@
-include('charriot_obj.txt')
+include('sqr_pipe_obj.txt')
 
 pipe = sqr_pipe(cs0, 100, 20, 100)
