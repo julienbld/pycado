@@ -1,0 +1,34 @@
+side = 5
+width = .2
+
+a = p0
+b = point(side, 0, 0)
+c = point(b, 0, side, 0)
+d = point(c, -side, 0 , 0)
+
+ab = line(a, b)
+bc = line(b, c)
+cd = line(c, d)
+da = line(d, p0)
+
+sqr1 = surface(ab, bc, cd, da)
+
+e = point(width, width, 0)
+f = point(e, side - 2 * width, 0, 0)
+g = point(f, 0, side - 2 * width, 0)
+h = point(g, -side + 2 * width, 0 , 0)
+
+ef = line(e, f)
+fg = line(f, g)
+gh = line(g, h)
+he = line(h, e)
+
+sqr2 = surface(ef, fg, gh, he)
+
+profil = surface(CUT, sqr1, sqr2)
+sqr1.hide()
+sqr2.hide()
+
+sqr_pipe = solid(EXTRUSION, profil, 20*vz)
+
+#nu = nurb(sqr_pipe)
