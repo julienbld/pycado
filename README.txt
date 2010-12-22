@@ -4,13 +4,12 @@ Pycado alpha version
 
 =============================================
 DESCRIPTION
-3D CAD scripting language based on pythonocc
-+ graphical interactive editor
+Pycado is an object oriented 3D CAD scripting language based on pythonocc with a graphical interactive editor
 
 =============================================
 AUTHORS
-Julien Blanchard - julienbld@yahoo.fr
-Charles Clément - caratorn@gmail.com
+Julien Blanchard - julienbld --- yahoo --- fr
+Charles Clément - caratorn --- gmail --- com
 
 =============================================
 HOMEPAGE
