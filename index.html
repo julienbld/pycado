@@ -16,13 +16,13 @@
     }
     #container {
       margin: 0 auto;
-      width: 700px;
+      width: 800px;
     }
 		h1 { font-size: 3.8em; color: #000000; margin-bottom: 3px; }
 		h1 .small { font-size: 0.4em; }
 		h1 a { text-decoration: none }
 		h2 { font-size: 1.5em; color: #000000; }
-    h3 { text-align: center; color: #000000; }
+    h3 { color: #000000; }
     a { color: #000000; }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
@@ -45,36 +45,77 @@
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="http://github.com/julienbld/pycado">pycado</a>
+    <h1><a href="http://github.com/julienbld/pycado">Pycado</a>
       <span class="small">by <a href="http://github.com/julienbld">julienbld</a></span></h1>
 
     <div class="description">
       Pycado is an object oriented 3D CAD scripting language based on pythonocc with a graphical interactive editor
     </div>
 
-    <p>Pycado is an object oriented scripting language for 3D CAD. It’s based upon the pythonocc library and written in Python. The language itself is a python subset.
+    <h3>Presentation</h3>
+    <p>Pycado is an object oriented scripting language for 3D CAD. It’s based upon the pythonocc library and written in Python. The language itself is a python subset.<br>
 Pycado is also an IDE for the scripting language. This IDE contains three main parts:<br>
 
 - a text editor, to edit scripts<br>
 - a graphical window where 3D components are drawn<br>
-- a log viewer<br>
+- a log viewer<br> <br>
 
 The object part of the language is really important because it allows to instantiate objects and build new objects based on shared components.<br> 
 “Object” must be understood as “mechanical part” rather than traditional computer language meaning.<br><br>
 
-Each object owns a coordinate system and attribute members. Instantiations are achieved by choosing a coordinate system and attribute values for a new object instance.<br><br>
+Each object owns a coordinate system and attribute members. Instantiations are achieved by choosing a coordinate system and attribute values.<br><br>
 
-The language is a python subset, so the scripts can be parsed by the python parser and cad objects are added in memory.<br> This strategy was chosen to update a part of an assembly or a component without compiling all the scripts and called objects, only impacted parts are updated. To achieve this, pycado is using a dependency tree.</p><h2>Dependencies</h2>
-<p>Pythonocc: http://www.pythonocc.org/
-OpenCASCADE library: http://www.opencascade.org/
-SWIG: http://www.swig.org/</p>
+The language is a python subset, so the scripts can be parsed by the python parser and cad objects are added in memory.<br> This strategy was chosen to update a part of an assembly or a component without compiling all the scripts and called objects, only impacted parts are updated. To achieve this, pycado is using a dependency tree.</p>
+
+<h3>Screenshots</h3>
+<p>
+Procedural programming of simple component (sqr_pipe_non_obj.txt example)<br><br>
+<a href='screenshots/sqr_pipe_non_obj.jpg' target='_blank'>
+<img src="screenshots/sqr_pipe_non_obj.jpg" width='800'>
+</a>
+<br><br><br>
+Object programming of the same simple component, several instanciations with differents parameters and coordinate systems (sqr_pipe_obj.txt example).<br><br>	
+<a href='screenshots/sqr_pipe_obj.jpg' target='_blank'>
+<img src="screenshots/sqr_pipe_obj.jpg" width='800'>
+</a>
+<br><br><br>
+
+Object instanciation via file import (test_include.txt example).<br><br>	
+<a href='screenshots/test_include.jpg' target='_blank'>
+<img src="screenshots/test_include.jpg" width='800'>
+</a>
+<br><br><br>
+More advanced components using several objects and instanciations parameters (cnc_components.txt example) <br><br>
+	
+<a href='screenshots/cnc_components.jpg' target='_blank'>
+<img src="screenshots/cnc_components.jpg" width='800'>
+</a>             <br><br>
+</p>
+
+<h3>Progress - TODO</h3>
+<p>
+Pycado is on very early stage, kind of proof of concept. Some example scripts
+were written. They are quite simple but give a good preview of our objectives.
+<br><br>
+Here are some directions to improve the application:<br>
+- complete the base API (point / line / curve ...). This API should stay simple
+  and should be associated with an integrated help in the IDE<br>
+- create interaction between the graphical window and text editor, e.g. copy
+  the name of the selected component to paste it in the editor<br>
+- write a complex example of 3D CAD object to figure the limits of our approach<br>
+</p>
+
+<h2>Dependencies</h2>
+<p>
+Pythonocc: <a href='http://www.pythonocc.org/'>http://www.pythonocc.org/</a><br>
+OpenCASCADE library: <a href='http://www.opencascade.org/'>http://www.opencascade.org/</a><br>
+SWIG: <a href='http://www.swig.org/'>http://www.swig.org/</a>
+</p>
 <h2>Authors</h2>
-<p>Charles Clément (caratorn@gmail.com)
-<br/>julienbld (julienbld@yahoo.fr)
-<br/>
-<br/>      </p>
-<h2>Contact</h2>
-<p> (julienbld@yahoo.fr)
+<p>
+Julien Blanchard (julienbld --- yahoo --- fr) <br/>
+Charles Clément (caratorn --- gmail --- com)
+
 <br/>      </p>
 
 
