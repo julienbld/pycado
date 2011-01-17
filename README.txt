@@ -49,8 +49,8 @@ dependency tree.
 2 - INSTALLATION
 ================
 Pycado is based on pythonocc, so the first step is to install pythonocc, which
-depends on the OpenCASCADE library (http://www.opencascade.org/) and swig
-(http://www.swig.org/).
+depends on the OpenCASCADE library (http://www.opencascade.org/), swig 
+(http://www.swig.org/), QScintilla(http://www.riverbankcomputing.co.uk/software/qscintilla).
 
 
 
